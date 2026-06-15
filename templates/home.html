@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Dashboard</h1>
+
+<div class="stat-grid">
+    <div class="stat-box">
+        <div class="value">{{ total_games }}</div>
+        <div class="label">Games Played</div>
+    </div>
+    <div class="stat-box">
+        <div class="value win">{{ wins }}</div>
+        <div class="label">Wins</div>
+    </div>
+    <div class="stat-box">
+        <div class="value loss">{{ losses }}</div>
+        <div class="label">Losses</div>
+    </div>
+    <div class="stat-box">
+        <div class="value">{{ win_pct }}%</div>
+        <div class="label">Win Rate</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Recent Games</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Your Team</th>
+                <th>Score</th>
+                <th>Opponent</th>
+                <th>Result</th>
+                <th>Box Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for game in recent_games %}
+            <tr>
+                <td>{{ game.date }}</td>
+                <td>{{ game.your_team }}</td>
+                <td>{{ game.your_score }} - {{ game.opp_score }}</td>
+                <td>{{ game.opp_team }}</td>
+                <td>
+                    <span class="{{ 'win' if game.win_loss == 'W' else 'loss' }}">
+                        {{ 'WIN' if game.win_loss == 'W' else 'LOSS' }}
+                    </span>
+                </td>
+                <td><a href="/box_score?game_id={{ game.game_id }}" style="color: #98002E;">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

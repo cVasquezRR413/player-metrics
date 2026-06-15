@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Player Averages</h1>
+
+<select onchange="window.location.href='/players?team=' + this.value">
+    <option value="all" {% if selected_team == 'all' %}selected{% endif %}>All Teams</option>
+    {% for team in teams %}
+    <option value="{{ team }}" {% if selected_team == team %}selected{% endif %}>{{ team }}</option>
+    {% endfor %}
+</select>
+
+<div class="card">
+    <h2>{{ selected_team if selected_team != 'all' else 'All Players' }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Team</th>
+                <th>Player</th>
+                <th>PTS</th><th>AST</th><th>REB</th><th>OREB</th>
+                <th>STL</th><th>BLK</th><th>TO</th>
+                <th>FGM</th><th>FGA</th><th>FG%</th>
+                <th>3PM</th><th>3PA</th><th>3P%</th>
+                <th>FTM</th><th>FTA</th><th>FT%</th>
+                <th>PF</th><th>+/-</th><th>PRF</th><th>DNK</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in players %}
+            <tr>
+                <td style="color:#666; font-size:0.8rem;">{{ p.team_name }}</td>
+                <td>{{ p.player_name }}</td>
+                <td style="color:#fff; font-weight:600;">{{ p.points }}</td>
+                <td>{{ p.assists }}</td><td>{{ p.rebounds }}</td><td>{{ p.off_rebounds }}</td>
+                <td>{{ p.steals }}</td><td>{{ p.blocks }}</td><td>{{ p.turnovers }}</td>
+                <td>{{ p.fg_made }}</td><td>{{ p.fg_attempted }}</td><td>{{ p.fg_pct }}</td>
+                <td>{{ p.three_made }}</td><td>{{ p.three_attempted }}</td><td>{{ p.three_pct }}</td>
+                <td>{{ p.ft_made }}</td><td>{{ p.ft_attempted }}</td><td>{{ p.ft_pct }}</td>
+                <td>{{ p.fouls }}</td>
+                <td style="color: {{ '#4caf50' if p.plus_minus > 0 else '#98002E' if p.plus_minus < 0 else '#888' }};">
+                    {{ '+' if p.plus_minus > 0 else '' }}{{ p.plus_minus }}
+                </td>
+                <td>{{ p.points_responsible_for }}</td>
+                <td>{{ p.dunks }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

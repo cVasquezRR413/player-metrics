@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Matchups</h1>
+
+<!-- TEAM MATCHUP -->
+<div class="card">
+    <h2>Team Matchup</h2>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem;">
+
+        <div>
+            <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Your Team</label>
+            <select id="teamMatchupYourTeam" style="width:100%;">
+                <option value="all">All Teams</option>
+                {% for t in your_teams %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Opponent Team</label>
+            <select id="teamMatchupOppTeam" style="width:100%;">
+                <option value="">Select opponent...</option>
+                {% for t in opp_teams %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+    </div>
+
+    <button onclick="loadTeamMatchup()"
+        style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+        Generate
+    </button>
+
+    <div id="teamMatchupResults" style="margin-top:1.5rem;"></div>
+</div>
+
+<!-- PLAYER MATCHUP -->
+<div class="card">
+    <h2>Player Matchup</h2>
+
+    <datalist id="matchup-player-datalist">
+        {% for p in players %}
+        <option value="{{ p.player_name }} ({{ p.team_name }})">
+        {% endfor %}
+    </datalist>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+
+        <div>
+            <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Players</label>
+            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+                <div style="position:relative; flex:1;">
+                    <input type="text" id="playerMatchupInput" placeholder="Type a player name..."
+                        oninput="filterMatchupDropdown()"
+                        onfocus="showMatchupDropdown()"
+                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem;">
+                    <div id="playerMatchupDropdown"
+                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                    </div>
+                </div>
+                <button onclick="addMatchupPlayer()"
+                    style="background:#1a1a1a; color:#888; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; cursor:pointer; font-size:0.85rem; white-space:nowrap;">
+                    + Add
+                </button>
+            </div>
+            <div id="matchupPlayerTags" style="display:flex; flex-wrap:wrap; gap:0.5rem;"></div>
+        </div>
+
+        <div>
+            <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Opponent Team</label>
+            <select id="playerMatchupOppTeam" style="width:100%;">
+                <option value="">Select opponent...</option>
+                {% for t in opp_teams %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+    </div>
+
+    <button onclick="loadPlayerMatchup()"
+        style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+        Generate
+    </button>
+
+    <div id="playerMatchupResults" style="margin-top:1.5rem;"></div>
+</div>
+
+<script>
+    const players = {{ players | tojson }};
+    const playerOptions = players.map(p => ({
+        label: `${p.player_name} (${p.team_name})`,
+        player_name: p.player_name,
+        team_name: p.team_name,
+        key: `${p.player_name}||${p.team_name}`
+    }));
+
+    let matchupPlayers = new Map();
+
+    const statLabels = {
+        pts: 'PTS', ast: 'AST', reb: 'REB', stl: 'STL',
+        blk: 'BLK', to_: 'TO', fgm: 'FGM', fga: 'FGA',
+        fg_pct: 'FG%', tpm: '3PM', tpa: '3PA', three_pct: '3P%',
+        ftm: 'FTM', fta: 'FTA', ft_pct: 'FT%'
+    };
+
+    function filterMatchupDropdown() {
+        const input = document.getElementById('playerMatchupInput').value.toLowerCase();
+        const dropdown = document.getElementById('playerMatchupDropdown');
+        dropdown.innerHTML = '';
+
+        const filtered = playerOptions.filter(p =>
+            p.label.toLowerCase().includes(input) && !matchupPlayers.has(p.key)
+        );
+
+        if (filtered.length === 0) {
+            dropdown.style.display = 'none';
+            return;
+        }
+
+        filtered.slice(0, 10).forEach(p => {
+            const item = document.createElement('div');
+            item.textContent = p.label;
+            item.style.cssText = 'padding: 0.5rem 1rem; cursor: pointer; color: #ccc; font-size: 0.85rem;';
+            item.onmouseenter = () => item.style.background = '#2a2a2a';
+            item.onmouseleave = () => item.style.background = 'transparent';
+            item.onclick = () => {
+                document.getElementById('playerMatchupInput').value = p.label;
+                dropdown.style.display = 'none';
+            };
+            dropdown.appendChild(item);
+        });
+
+        dropdown.style.display = 'block';
+    }
+
+    function showMatchupDropdown() {
+        filterMatchupDropdown();
+    }
+
+    function addMatchupPlayer() {
+        const inputVal = document.getElementById('playerMatchupInput').value.trim();
+        const matched = playerOptions.find(p => p.label.toLowerCase() === inputVal.toLowerCase());
+        if (!matched || matchupPlayers.has(matched.key)) return;
+
+        matchupPlayers.set(matched.key, matched.label);
+        document.getElementById('playerMatchupInput').value = '';
+
+        const tag = document.createElement('span');
+        tag.style.cssText = 'background: #98002E; color: #fff; padding: 0.3rem 0.8rem; border-radius: 4px; font-size: 0.8rem; display:inline-flex; align-items:center; gap:0.5rem;';
+        tag.dataset.key = matched.key;
+        tag.innerHTML = `${matched.label} <span style="cursor:pointer; font-weight:bold;" onclick="removeMatchupPlayer(this, '${matched.key}')">×</span>`;
+        document.getElementById('matchupPlayerTags').appendChild(tag);
+    }
+
+    function removeMatchupPlayer(el, key) {
+        matchupPlayers.delete(key);
+        el.parentElement.remove();
+    }
+
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('playerMatchupDropdown');
+        const input = document.getElementById('playerMatchupInput');
+        if (dropdown && input && !input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    function buildComparisonTable(overall, vs_opp, label) {
+        const stats = Object.keys(statLabels);
+        let rows = '';
+        stats.forEach(stat => {
+            if (overall[stat] === undefined) return;
+            const o = overall[stat] ?? '-';
+            const v = vs_opp[stat] ?? '-';
+            let diff = '-';
+            let diffColor = '#888';
+            if (typeof o === 'number' && typeof v === 'number') {
+                const d = (v - o).toFixed(2);
+                diff = d > 0 ? `+${d}` : `${d}`;
+                diffColor = d > 0 ? '#4caf50' : d < 0 ? '#98002E' : '#888';
+            }
+            rows += `
+                <tr>
+                    <td>${statLabels[stat]}</td>
+                    <td>${o}</td>
+                    <td>${v}</td>
+                    <td style="color:${diffColor}; font-weight:600;">${diff}</td>
+                </tr>
+            `;
+        });
+
+        return `
+            <div style="margin-bottom:1.5rem;">
+                <h2 style="margin-bottom:0.75rem;">${label}</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Stat</th>
+                            <th>Overall Avg</th>
+                            <th>vs Opponent</th>
+                            <th>Difference</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    async function loadTeamMatchup() {
+        const yourTeam = document.getElementById('teamMatchupYourTeam').value;
+        const oppTeam = document.getElementById('teamMatchupOppTeam').value;
+        if (!oppTeam) { alert('Please select an opponent team.'); return; }
+
+        const params = new URLSearchParams({
+            type: 'team',
+            your_team: yourTeam,
+            opp_team: oppTeam
+        });
+
+        const response = await fetch(`/api/matchup_data?${params.toString()}`);
+        const data = await response.json();
+
+        const container = document.getElementById('teamMatchupResults');
+        const label = `${yourTeam === 'all' ? 'All Teams' : yourTeam} vs ${oppTeam} (${data.games_vs} games of ${data.total_games} total)`;
+        container.innerHTML = buildComparisonTable(data.overall, data.vs_opp, label);
+    }
+
+    async function loadPlayerMatchup() {
+        const oppTeam = document.getElementById('playerMatchupOppTeam').value;
+        if (!oppTeam) { alert('Please select an opponent team.'); return; }
+        if (matchupPlayers.size === 0) { alert('Please add at least one player.'); return; }
+
+        const params = new URLSearchParams({ type: 'player', opp_team: oppTeam });
+        matchupPlayers.forEach((label, key) => params.append('selections', key));
+
+        const response = await fetch(`/api/matchup_data?${params.toString()}`);
+        const data = await response.json();
+
+        const container = document.getElementById('playerMatchupResults');
+        container.innerHTML = '';
+
+        Object.values(data).forEach(player => {
+            const label = `${player.player_name} (${player.team_name}) vs ${oppTeam} (${player.games_vs} games of ${player.total_games} total)`;
+            container.innerHTML += buildComparisonTable(player.overall, player.vs_opp, label);
+        });
+    }
+</script>
+
+{% endblock %}

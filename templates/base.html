@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2K Stat Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+        }
+
+        nav {
+            background: #111;
+            border-bottom: 2px solid #98002E;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            height: 56px;
+        }
+
+        nav .brand {
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-decoration: none;
+            text-transform: uppercase;
+        }
+
+        nav a {
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            padding: 0.25rem 0;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s, border-color 0.2s;
+        }
+
+        nav a:hover, nav a.active {
+            color: #fff;
+            border-bottom-color: #98002E;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        h2 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #98002E;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.82rem;
+        }
+
+        th {
+            background: #1a1a1a;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 0.72rem;
+            padding: 0.6rem 0.75rem;
+            text-align: right;
+            border-bottom: 1px solid #222;
+        }
+
+        th:first-child { text-align: left; }
+
+        td {
+            padding: 0.55rem 0.75rem;
+            text-align: right;
+            border-bottom: 1px solid #161616;
+            color: #ccc;
+        }
+
+        td:first-child {
+            text-align: left;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        tr:hover td { background: #141414; }
+
+        .card {
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .win { color: #4caf50; font-weight: 600; }
+        .loss { color: #98002E; font-weight: 600; }
+
+        select {
+            background: #1a1a1a;
+            color: #e0e0e0;
+            border: 1px solid #333;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-bottom: 1.5rem;
+        }
+
+        select:focus { outline: none; border-color: #98002E; }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-box {
+            background: #111;
+            border: 1px solid #1e1e1e;
+            border-radius: 6px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-box .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .stat-box .label {
+            font-size: 0.72rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/" class="brand">2K Stat Tracker</a>
+        <a href="/" {% if request.path == '/' %}class="active"{% endif %}>Home</a>
+        <a href="/box_score" {% if request.path == '/box_score' %}class="active"{% endif %}>Box Scores</a>
+        <a href="/trends" {% if request.path == '/trends' %}class="active"{% endif %}>Averages</a>
+        <a href="/analysis" {% if request.path == '/analysis' %}class="active"{% endif %}>Analysis</a>
+        <a href="/players" {% if request.path == '/players' %}class="active"{% endif %}>Players</a>
+        <a href="/search" {% if request.path == '/search' %}class="active"{% endif %}>Search</a>
+        <a href="/matchups" {% if request.path == '/matchups' %}class="active"{% endif %}>Matchups</a>
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

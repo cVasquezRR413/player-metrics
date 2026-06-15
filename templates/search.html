@@ -1,0 +1,326 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Game Search</h1>
+
+<!-- TEAM FILTERS -->
+<div class="card">
+    <h2>Team Game Filters</h2>
+    <form method="GET" action="/search">
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem;">
+
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Team</label>
+                <select name="team" style="width:100%;">
+                    <option value="all" {% if team == "all" %}selected{% endif %}>All Teams</option>
+                    {% for t in teams %}
+                    <option value="{{ t }}" {% if team == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Result</label>
+                <select name="result" style="width:100%;">
+                    <option value="all" {% if result == "all" %}selected{% endif %}>All</option>
+                    <option value="W" {% if result == "W" %}selected{% endif %}>Wins</option>
+                    <option value="L" {% if result == "L" %}selected{% endif %}>Losses</option>
+                </select>
+            </div>
+
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Date From</label>
+                <input type="date" name="date_from" value="{{ date_from }}"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Date To</label>
+                <input type="date" name="date_to" value="{{ date_to }}"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 1rem; margin-bottom: 1rem;">
+
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min PTS</label>
+                <input type="number" name="min_pts" value="{{ min_pts }}" placeholder="e.g. 100"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max PTS</label>
+                <input type="number" name="max_pts" value="{{ max_pts }}" placeholder="e.g. 120"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min FG%</label>
+                <input type="number" name="min_fgp" value="{{ min_fgp }}" placeholder="e.g. 0.45" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max FG%</label>
+                <input type="number" name="max_fgp" value="{{ max_fgp }}" placeholder="e.g. 0.55" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min 3P%</label>
+                <input type="number" name="min_3pp" value="{{ min_3pp }}" placeholder="e.g. 0.35" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max 3P%</label>
+                <input type="number" name="max_3pp" value="{{ max_3pp }}" placeholder="e.g. 0.50" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min FT%</label>
+                <input type="number" name="min_ftp" value="{{ min_ftp }}" placeholder="e.g. 0.70" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max FT%</label>
+                <input type="number" name="max_ftp" value="{{ max_ftp }}" placeholder="e.g. 0.90" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min AST</label>
+                <input type="number" name="min_ast" value="{{ min_ast }}" placeholder="e.g. 20"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max AST</label>
+                <input type="number" name="max_ast" value="{{ max_ast }}" placeholder="e.g. 35"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min REB</label>
+                <input type="number" name="min_reb" value="{{ min_reb }}" placeholder="e.g. 40"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max REB</label>
+                <input type="number" name="max_reb" value="{{ max_reb }}" placeholder="e.g. 55"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min STL</label>
+                <input type="number" name="min_stl" value="{{ min_stl }}" placeholder="e.g. 5"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max STL</label>
+                <input type="number" name="max_stl" value="{{ max_stl }}" placeholder="e.g. 15"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min BLK</label>
+                <input type="number" name="min_blk" value="{{ min_blk }}" placeholder="e.g. 3"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max BLK</label>
+                <input type="number" name="max_blk" value="{{ max_blk }}" placeholder="e.g. 10"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min TO</label>
+                <input type="number" name="min_to" value="{{ min_to }}" placeholder="e.g. 5"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max TO</label>
+                <input type="number" name="max_to" value="{{ max_to }}" placeholder="e.g. 20"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+
+        </div>
+
+        <button type="submit"
+            style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+            Search Games
+        </button>
+    </form>
+</div>
+
+{% if team_searched %}
+<div class="card">
+    <h2>{{ total_team }} Team Game{{ "s" if total_team != 1 else "" }} Found</h2>
+    {% if team_results %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th><th>Your Team</th><th>Score</th><th>Opponent</th>
+                <th>Result</th><th>PTS</th><th>AST</th><th>REB</th>
+                <th>STL</th><th>BLK</th><th>TO</th>
+                <th>FG%</th><th>3P%</th><th>FT%</th><th>Box Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for game in team_results %}
+            <tr>
+                <td>{{ game.date }}</td>
+                <td>{{ game.your_team }}</td>
+                <td>{{ game.your_score }} - {{ game.opp_score }}</td>
+                <td>{{ game.opp_team }}</td>
+                <td>
+                    {% if game.win_loss == "W" %}
+                    <span class="win">WIN</span>
+                    {% else %}
+                    <span class="loss">LOSS</span>
+                    {% endif %}
+                </td>
+                <td style="color:#fff; font-weight:600;">{{ game.total_pts }}</td>
+                <td>{{ game.total_ast }}</td>
+                <td>{{ game.total_reb }}</td>
+                <td>{{ game.total_stl }}</td>
+                <td>{{ game.total_blk }}</td>
+                <td>{{ game.total_to }}</td>
+                <td>{{ "%.3f"|format(game.fg_pct) }}</td>
+                <td>{{ "%.3f"|format(game.three_pct) }}</td>
+                <td>{{ "%.3f"|format(game.ft_pct) }}</td>
+                <td><a href="/box_score?game_id={{ game.game_id }}" style="color:#98002E;">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#666; padding: 1rem 0;">No games match your filters.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- PLAYER FILTERS -->
+<div class="card">
+    <h2>Player Game Filters</h2>
+    <form method="GET" action="/search">
+
+        <datalist id="player-list">
+            {% for p in player_names %}
+            <option value="{{ p }}">
+            {% endfor %}
+        </datalist>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1rem;">
+
+            <div style="grid-column: span 2;">
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Player Name</label>
+                <input type="text" name="player_name" value="{{ player_name }}"
+                    list="player-list" placeholder="Start typing a player name..."
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min PTS</label>
+                <input type="number" name="p_min_pts" value="{{ p_min_pts }}" placeholder="e.g. 25"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max PTS</label>
+                <input type="number" name="p_max_pts" value="{{ p_max_pts }}" placeholder="e.g. 40"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min AST</label>
+                <input type="number" name="p_min_ast" value="{{ p_min_ast }}" placeholder="e.g. 5"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max AST</label>
+                <input type="number" name="p_max_ast" value="{{ p_max_ast }}" placeholder="e.g. 12"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min REB</label>
+                <input type="number" name="p_min_reb" value="{{ p_min_reb }}" placeholder="e.g. 8"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max REB</label>
+                <input type="number" name="p_max_reb" value="{{ p_max_reb }}" placeholder="e.g. 15"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min FG%</label>
+                <input type="number" name="p_min_fgp" value="{{ p_min_fgp }}" placeholder="e.g. 0.50" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max FG%</label>
+                <input type="number" name="p_max_fgp" value="{{ p_max_fgp }}" placeholder="e.g. 0.65" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Min 3P%</label>
+                <input type="number" name="p_min_3pp" value="{{ p_min_3pp }}" placeholder="e.g. 0.35" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+            <div>
+                <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Max 3P%</label>
+                <input type="number" name="p_max_3pp" value="{{ p_max_3pp }}" placeholder="e.g. 0.60" step="0.01"
+                    style="width:100%; background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem; border-radius:4px;">
+            </div>
+
+        </div>
+
+        <button type="submit"
+            style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+            Search Players
+        </button>
+    </form>
+</div>
+
+{% if player_searched %}
+<div class="card">
+    <h2>{{ total_player }} Player Game{{ "s" if total_player != 1 else "" }} Found</h2>
+    {% if player_results %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th><th>Player</th><th>Team</th><th>Opponent</th>
+                <th>Result</th><th>MIN</th><th>PTS</th><th>AST</th><th>REB</th>
+                <th>STL</th><th>BLK</th><th>TO</th>
+                <th>FG%</th><th>3P%</th><th>+/-</th><th>PRF</th><th>Box Score</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in player_results %}
+            <tr>
+                <td>{{ p.date }}</td>
+                <td>{{ p.player_name }}</td>
+                <td style="color:#666; font-size:0.8rem;">{{ p.player_team }}</td>
+                <td>{{ p.opp_team }}</td>
+                <td>
+                    {% if p.win_loss == "W" %}
+                    <span class="win">WIN</span>
+                    {% else %}
+                    <span class="loss">LOSS</span>
+                    {% endif %}
+                </td>
+                <td>{{ p.minutes }}</td>
+                <td style="color:#fff; font-weight:600;">{{ p.points }}</td>
+                <td>{{ p.assists }}</td>
+                <td>{{ p.rebounds }}</td>
+                <td>{{ p.steals }}</td>
+                <td>{{ p.blocks }}</td>
+                <td>{{ p.turnovers }}</td>
+                <td>{{ "%.3f"|format(p.fg_pct) }}</td>
+                <td>{{ "%.3f"|format(p.three_pct) }}</td>
+                <td style="color: {% if p.plus_minus > 0 %}#4caf50{% elif p.plus_minus < 0 %}#98002E{% else %}#888{% endif %};">
+                    {% if p.plus_minus > 0 %}+{% endif %}{{ p.plus_minus }}
+                </td>
+                <td>{{ p.points_responsible_for }}</td>
+                <td><a href="/box_score?game_id={{ p.game_id }}" style="color:#98002E;">View</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color:#666; padding: 1rem 0;">No player games match your filters.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}
