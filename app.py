@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 import pandas as pd
 from database import get_connection
 
@@ -411,6 +411,8 @@ def test():
         max_to=''
     )
 
+# ─── MERGED ANALYSIS + MATCHUPS ──────────────────────
+
 @app.route("/analysis")
 def analysis():
     conn = get_connection()
@@ -420,7 +422,12 @@ def analysis():
         WHERE is_your_team = 1 ORDER BY team_name
     """, conn)
 
-    players_df = pd.read_sql_query("""
+    opp_teams_df = pd.read_sql_query("""
+        SELECT DISTINCT team_name FROM teams 
+        WHERE is_your_team = 0 ORDER BY team_name
+    """, conn)
+
+    your_players_df = pd.read_sql_query("""
         SELECT DISTINCT ps.player_name, t.team_name
         FROM player_stats ps
         JOIN teams t ON ps.team_id = t.team_id
@@ -428,12 +435,28 @@ def analysis():
         ORDER BY ps.player_name
     """, conn)
 
+    opp_players_df = pd.read_sql_query("""
+        SELECT DISTINCT ps.player_name, t.team_name
+        FROM player_stats ps
+        JOIN teams t ON ps.team_id = t.team_id
+        WHERE t.is_your_team = 0
+        ORDER BY ps.player_name
+    """, conn)
+
     conn.close()
 
     return render_template("analysis.html",
         teams=teams_df['team_name'].tolist(),
-        players=players_df.to_dict('records')
+        opp_teams=opp_teams_df['team_name'].tolist(),
+        your_players=your_players_df.to_dict('records'),
+        opp_players=opp_players_df.to_dict('records')
     )
+
+@app.route("/matchups")
+def matchups():
+    return redirect('/analysis')
+
+# ─── API: TEAM TREND CHART ───────────────────────────
 
 @app.route("/api/chart_data")
 def chart_data():
@@ -487,38 +510,62 @@ def chart_data():
     conn.close()
     return results
 
-@app.route("/matchups")
-def matchups():
+# ─── API: PLAYER GRAPH (yours vs opp, home/away) ─────
+
+@app.route("/api/player_graph_data")
+def player_graph_data():
     conn = get_connection()
 
-    # Get all opponent teams
-    opp_teams_df = pd.read_sql_query("""
-        SELECT DISTINCT team_name FROM teams 
-        WHERE is_your_team = 0 ORDER BY team_name
-    """, conn)
+    selections = request.args.getlist('selections')
+    stat = request.args.get('stat', 'points')
+    limit = request.args.get('limit', 'all')
 
-    # Get all your teams
-    your_teams_df = pd.read_sql_query("""
-        SELECT DISTINCT team_name FROM teams 
-        WHERE is_your_team = 1 ORDER BY team_name
-    """, conn)
+    results = {}
 
-    # Get all players
-    players_df = pd.read_sql_query("""
-        SELECT DISTINCT ps.player_name, t.team_name
-        FROM player_stats ps
-        JOIN teams t ON ps.team_id = t.team_id
-        WHERE t.is_your_team = 1
-        ORDER BY ps.player_name
-    """, conn)
+    for selection in selections:
+        parts = selection.split('||')
+        if len(parts) < 3:
+            continue
+
+        player_name = parts[0]
+        team_name = parts[1]
+        side = parts[2]           # 'yours' or 'opp'
+        home_away = parts[3] if len(parts) > 3 else 'both'
+
+        is_your_team = 1 if side == 'yours' else 0
+
+        home_away_filter = ''
+        if home_away == 'home':
+            home_away_filter = "AND g.home_away = 'H'"
+        elif home_away == 'away':
+            home_away_filter = "AND g.home_away = 'A'"
+
+        query = f"""
+            SELECT g.game_id, g.date, g.win_loss, g.home_away,
+                   t2.team_name as opp_team,
+                   ps.{stat} as value
+            FROM player_stats ps
+            JOIN teams t ON ps.team_id = t.team_id
+            JOIN games g ON ps.game_id = g.game_id
+            JOIN teams t2 ON g.game_id = t2.game_id AND t2.is_your_team != t.is_your_team
+            WHERE t.is_your_team = ?
+            AND ps.player_name = ?
+            AND t.team_name = ?
+            {home_away_filter}
+            ORDER BY g.date ASC
+        """
+
+        df = pd.read_sql_query(query, conn, params=(is_your_team, player_name, team_name))
+
+        if limit != 'all':
+            df = df.tail(int(limit))
+
+        results[selection] = df.to_dict('records')
 
     conn.close()
+    return results
 
-    return render_template("matchups.html",
-        opp_teams=opp_teams_df['team_name'].tolist(),
-        your_teams=your_teams_df['team_name'].tolist(),
-        players=players_df.to_dict('records')
-    )
+# ─── API: MATCHUP TABLES ─────────────────────────────
 
 @app.route("/api/matchup_data")
 def matchup_data():
@@ -532,7 +579,6 @@ def matchup_data():
     results = {}
 
     if matchup_type == 'team':
-        # Overall team averages
         overall = pd.read_sql_query("""
             SELECT SUM(ps.points) as pts, SUM(ps.assists) as ast,
                    SUM(ps.rebounds) as reb, SUM(ps.steals) as stl,
@@ -549,7 +595,6 @@ def matchup_data():
             GROUP BY g.game_id
         """.format(team_filter=f"AND t.team_name = '{your_team}'" if your_team != 'all' else ''), conn)
 
-        # vs specific opponent
         vs_opp = pd.read_sql_query("""
             SELECT SUM(ps.points) as pts, SUM(ps.assists) as ast,
                    SUM(ps.rebounds) as reb, SUM(ps.steals) as stl,
@@ -575,19 +620,15 @@ def matchup_data():
             df['ft_pct'] = (df['ftm'] / df['fta']).round(3)
             return df.mean(numeric_only=True).round(2).to_dict()
 
-        overall_avgs = calc_avgs(overall)
-        vs_avgs = calc_avgs(vs_opp)
-
         results = {
             'type': 'team',
-            'overall': overall_avgs,
-            'vs_opp': vs_avgs,
+            'overall': calc_avgs(overall),
+            'vs_opp': calc_avgs(vs_opp),
             'games_vs': len(vs_opp),
             'total_games': len(overall)
         }
 
     else:
-        # Player matchup
         for selection in selections:
             parts = selection.split('||')
             player_name = parts[0]
@@ -616,7 +657,7 @@ def matchup_data():
                 JOIN teams t ON ps.team_id = t.team_id
                 JOIN games g ON ps.game_id = g.game_id
                 JOIN teams t2 ON g.game_id = t2.game_id AND t2.is_your_team = 0
-                WHERE t.is_your_team = 1 AND ps.player_name = ? 
+                WHERE t.is_your_team = 1 AND ps.player_name = ?
                 AND t.team_name = ? AND t2.team_name = ?
             """, conn, params=(player_name, team_name, opp_team))
 

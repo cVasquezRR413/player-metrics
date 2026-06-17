@@ -3,20 +3,22 @@
 
 <h1>Analysis</h1>
 
+<!-- ═══════════════════════════════════════════════════
+     GRAPH BUILDER
+════════════════════════════════════════════════════ -->
 <div class="card">
     <h2>Build a Graph</h2>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1rem;">
 
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-bottom:1rem;">
         <div>
-            <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Type</label>
+            <label class="field-label">Type</label>
             <select id="chartType" onchange="updateSelections()" style="width:100%;">
                 <option value="team">Team</option>
                 <option value="player">Player</option>
             </select>
         </div>
-
         <div>
-            <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Stat</label>
+            <label class="field-label">Stat</label>
             <select id="chartStat" style="width:100%;">
                 <option value="points">Points</option>
                 <option value="assists">Assists</option>
@@ -26,12 +28,12 @@
                 <option value="turnovers">Turnovers</option>
                 <option value="fg_made">FG Made</option>
                 <option value="three_made">3PM</option>
+                <option value="plus_minus">Plus/Minus</option>
                 <option value="dunks">Dunks</option>
             </select>
         </div>
-
         <div>
-            <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Last N Games</label>
+            <label class="field-label">Last N Games</label>
             <select id="chartLimit" style="width:100%;">
                 <option value="all">All Games</option>
                 <option value="10">Last 10</option>
@@ -39,28 +41,47 @@
                 <option value="50">Last 50</option>
             </select>
         </div>
-
     </div>
 
-    <div style="margin-bottom: 1rem;">
-        <label style="display:block; color:#666; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:0.4rem;">Select Teams / Players to Compare</label>
+    <!-- TEAM BUTTONS -->
+    <div id="teamButtons" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;"></div>
 
-        <!-- Team buttons -->
-        <div id="teamButtons" style="display:flex; flex-wrap:wrap; gap:0.5rem;"></div>
+    <!-- PLAYER BUILDER -->
+    <div id="playerBuilder" style="display:none;">
 
-        <!-- Player search -->
-        <div id="playerSearch" style="display:none;">
-            <div style="position:relative; display:inline-block; margin-bottom:0.5rem;">
-                <input type="text" id="playerInput" placeholder="Type a player name..."
-                    oninput="filterPlayerDropdown()"
-                    onfocus="showPlayerDropdown()"
-                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:350px; font-size:0.9rem;">
-                <div id="playerDropdown"
-                    style="display:none; position:absolute; top:100%; left:0; width:350px; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+
+            <!-- YOUR PLAYERS -->
+            <div>
+                <label class="field-label" style="color:#98002E;">Your Players</label>
+                <div style="position:relative;">
+                    <input type="text" id="yourPlayerInput" placeholder="Search your roster..."
+                        oninput="filterDropdown('yours')" onfocus="filterDropdown('yours')"
+                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                    <div id="yourPlayerDropdown"
+                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                    </div>
                 </div>
             </div>
-            <div id="playerTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;"></div>
+
+            <!-- OPPONENT PLAYERS -->
+            <div>
+                <label class="field-label" style="color:#2196F3;">Opponent Players</label>
+                <div style="position:relative;">
+                    <input type="text" id="oppPlayerInput" placeholder="Search opponents..."
+                        oninput="filterDropdown('opp')" onfocus="filterDropdown('opp')"
+                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                    <div id="oppPlayerDropdown"
+                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                    </div>
+                </div>
+            </div>
+
         </div>
+
+        <!-- PLAYER TAGS -->
+        <div id="playerTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
+
     </div>
 
     <button onclick="addGraph()"
@@ -71,244 +92,503 @@
 
 <div id="graphsContainer"></div>
 
+<!-- ═══════════════════════════════════════════════════
+     TEAM MATCHUP
+════════════════════════════════════════════════════ -->
+<div class="card">
+    <h2>Team Matchup</h2>
+    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin-bottom:1rem;">
+        <div>
+            <label class="field-label">Your Team</label>
+            <select id="teamMatchupYourTeam" style="width:100%;">
+                <option value="all">All Teams</option>
+                {% for t in teams %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="field-label">Opponent Team</label>
+            <select id="teamMatchupOppTeam" style="width:100%;">
+                <option value="">Select opponent...</option>
+                {% for t in opp_teams %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <button onclick="loadTeamMatchup()"
+        style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+        Generate
+    </button>
+    <div id="teamMatchupResults" style="margin-top:1.5rem;"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     PLAYER MATCHUP TABLE
+════════════════════════════════════════════════════ -->
+<div class="card">
+    <h2>Player Matchup</h2>
+    <div style="display:grid; grid-template-columns:2fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div>
+            <label class="field-label">Players (Your Team)</label>
+            <div style="position:relative;">
+                <input type="text" id="matchupPlayerInput" placeholder="Type a player name..."
+                    oninput="filterMatchupDropdown()" onfocus="filterMatchupDropdown()"
+                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                <div id="matchupPlayerDropdown"
+                    style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                </div>
+            </div>
+            <div id="matchupPlayerTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;"></div>
+        </div>
+        <div>
+            <label class="field-label">Opponent Team</label>
+            <select id="playerMatchupOppTeam" style="width:100%;">
+                <option value="">Select opponent...</option>
+                {% for t in opp_teams %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <button onclick="loadPlayerMatchup()"
+        style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+        Generate
+    </button>
+    <div id="playerMatchupResults" style="margin-top:1.5rem;"></div>
+</div>
+
+<style>
+    .field-label {
+        display: block;
+        color: #666;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 0.4rem;
+    }
+    .player-tag {
+        color: #fff;
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .tag-control {
+        background: rgba(255,255,255,0.15);
+        border: none;
+        color: #fff;
+        border-radius: 3px;
+        padding: 0.1rem 0.4rem;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+    .tag-control.active {
+        background: rgba(255,255,255,0.35);
+        font-weight: 700;
+    }
+</style>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-    const teams = {{ teams | tojson }};
-    const players = {{ players | tojson }};
+const teams = {{ teams | tojson }};
+const yourPlayers = {{ your_players | tojson }};
+const oppPlayers = {{ opp_players | tojson }};
 
-    // Build player list as "Name (Team)" for display, with separate key for API
-    const playerOptions = players.map(p => ({
-        label: `${p.player_name} (${p.team_name})`,
-        player_name: p.player_name,
-        team_name: p.team_name,
-        key: `${p.player_name}||${p.team_name}`
-    }));
+const yourPlayerOptions = yourPlayers.map(p => ({
+    label: `${p.player_name} (${p.team_name})`,
+    player_name: p.player_name,
+    team_name: p.team_name,
+    side: 'yours'
+}));
 
-    const lineColors = [
-        '#98002E', '#4caf50', '#2196F3', '#FF9800', '#9C27B0',
-        '#00BCD4', '#FF5722', '#8BC34A', '#FFC107', '#E91E63'
-    ];
+const oppPlayerOptions = oppPlayers.map(p => ({
+    label: `${p.player_name} (${p.team_name})`,
+    player_name: p.player_name,
+    team_name: p.team_name,
+    side: 'opp'
+}));
 
-    let graphCount = 0;
-    let selectedItems = new Map(); // key -> display label
+// For matchup table (your players only)
+const matchupPlayerOptions = yourPlayers.map(p => ({
+    label: `${p.player_name} (${p.team_name})`,
+    player_name: p.player_name,
+    team_name: p.team_name,
+    key: `${p.player_name}||${p.team_name}`
+}));
 
-    function updateSelections() {
-        const type = document.getElementById('chartType').value;
-        selectedItems.clear();
+const lineColors = [
+    '#98002E', '#2196F3', '#4caf50', '#FF9800', '#9C27B0',
+    '#00BCD4', '#FF5722', '#8BC34A', '#FFC107', '#E91E63'
+];
 
-        document.getElementById('teamButtons').innerHTML = '';
-        document.getElementById('playerTags').innerHTML = '';
-        document.getElementById('playerInput') && (document.getElementById('playerInput').value = '');
+let graphCount = 0;
+let selectedTeams = new Map();
 
-        if (type === 'team') {
-            document.getElementById('teamButtons').style.display = 'flex';
-            document.getElementById('playerSearch').style.display = 'none';
+// Graph builder player selections: key -> { option, homeAway }
+let graphPlayers = new Map();
 
-            teams.forEach(item => {
-                const btn = document.createElement('button');
-                btn.textContent = item;
-                btn.dataset.value = item;
-                btn.style.cssText = `
-                    background: #1a1a1a; color: #888; border: 1px solid #333;
-                    padding: 0.4rem 0.8rem; border-radius: 4px; cursor: pointer;
-                    font-size: 0.8rem; transition: all 0.15s;
-                `;
-                btn.onclick = () => toggleTeam(btn, item);
-                document.getElementById('teamButtons').appendChild(btn);
-            });
-        } else {
-            document.getElementById('teamButtons').style.display = 'none';
-            document.getElementById('playerSearch').style.display = 'block';
-            filterPlayerDropdown();
-        }
+// Matchup table players
+let matchupPlayers = new Map();
+
+// ─── GRAPH BUILDER ───────────────────────────────────
+
+function updateSelections() {
+    const type = document.getElementById('chartType').value;
+    selectedTeams.clear();
+    graphPlayers.clear();
+    document.getElementById('playerTags').innerHTML = '';
+
+    if (type === 'team') {
+        document.getElementById('teamButtons').style.display = 'flex';
+        document.getElementById('playerBuilder').style.display = 'none';
+        renderTeamButtons();
+    } else {
+        document.getElementById('teamButtons').style.display = 'none';
+        document.getElementById('playerBuilder').style.display = 'block';
     }
+}
 
-    function toggleTeam(btn, item) {
-        if (selectedItems.has(item)) {
-            selectedItems.delete(item);
-            btn.style.background = '#1a1a1a';
-            btn.style.color = '#888';
-            btn.style.borderColor = '#333';
-        } else {
-            selectedItems.set(item, item);
-            btn.style.background = '#98002E';
-            btn.style.color = '#fff';
-            btn.style.borderColor = '#98002E';
-        }
+function renderTeamButtons() {
+    const container = document.getElementById('teamButtons');
+    container.innerHTML = '';
+    teams.forEach(item => {
+        const btn = document.createElement('button');
+        btn.textContent = item;
+        btn.dataset.value = item;
+        btn.style.cssText = 'background:#1a1a1a; color:#888; border:1px solid #333; padding:0.4rem 0.8rem; border-radius:4px; cursor:pointer; font-size:0.8rem;';
+        btn.onclick = () => toggleTeam(btn, item);
+        container.appendChild(btn);
+    });
+}
+
+function toggleTeam(btn, item) {
+    if (selectedTeams.has(item)) {
+        selectedTeams.delete(item);
+        btn.style.background = '#1a1a1a';
+        btn.style.color = '#888';
+        btn.style.borderColor = '#333';
+    } else {
+        selectedTeams.set(item, item);
+        btn.style.background = '#98002E';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#98002E';
     }
+}
 
-    function filterPlayerDropdown() {
-        const input = document.getElementById('playerInput').value.toLowerCase();
-        const dropdown = document.getElementById('playerDropdown');
-        dropdown.innerHTML = '';
+function filterDropdown(side) {
+    const inputId = side === 'yours' ? 'yourPlayerInput' : 'oppPlayerInput';
+    const dropdownId = side === 'yours' ? 'yourPlayerDropdown' : 'oppPlayerDropdown';
+    const options = side === 'yours' ? yourPlayerOptions : oppPlayerOptions;
+    const accentColor = side === 'yours' ? '#98002E' : '#2196F3';
 
-        const filtered = playerOptions.filter(p =>
-            p.label.toLowerCase().includes(input) && !selectedItems.has(p.key)
-        );
+    const input = document.getElementById(inputId).value.toLowerCase();
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.innerHTML = '';
 
-        if (filtered.length === 0) {
-            dropdown.style.display = 'none';
-            return;
-        }
+    // Filter out already-added players (match on name+team+side)
+    const existing = new Set([...graphPlayers.keys()].filter(k => k.includes(`||${side}`)).map(k => k.split('||').slice(0,2).join('||')));
+    const filtered = options.filter(p =>
+        p.label.toLowerCase().includes(input) && !existing.has(`${p.player_name}||${p.team_name}`)
+    );
 
-        filtered.slice(0, 10).forEach(p => {
-            const item = document.createElement('div');
-            item.textContent = p.label;
-            item.style.cssText = `
-                padding: 0.5rem 1rem; cursor: pointer; color: #ccc; font-size: 0.85rem;
-            `;
-            item.onmouseenter = () => item.style.background = '#2a2a2a';
-            item.onmouseleave = () => item.style.background = 'transparent';
-            item.onclick = () => selectPlayer(p);
-            dropdown.appendChild(item);
-        });
+    if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
 
-        dropdown.style.display = 'block';
-    }
-
-    function showPlayerDropdown() {
-        filterPlayerDropdown();
-    }
-
-    function selectPlayer(p) {
-        selectedItems.set(p.key, p.label);
-        document.getElementById('playerInput').value = '';
-        document.getElementById('playerDropdown').style.display = 'none';
-
-        const tag = document.createElement('span');
-        tag.style.cssText = `
-            background: #98002E; color: #fff; padding: 0.3rem 0.8rem;
-            border-radius: 4px; font-size: 0.8rem; display:inline-flex; align-items:center; gap:0.5rem;
-        `;
-        tag.dataset.key = p.key;
-        tag.innerHTML = `${p.label} <span style="cursor:pointer; font-weight:bold;" onclick="removePlayerTag(this, '${p.key}')">×</span>`;
-        document.getElementById('playerTags').appendChild(tag);
-    }
-
-    function removePlayerTag(el, key) {
-        selectedItems.delete(key);
-        el.parentElement.remove();
-    }
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        const dropdown = document.getElementById('playerDropdown');
-        const input = document.getElementById('playerInput');
-        if (dropdown && input && !input.contains(e.target) && !dropdown.contains(e.target)) {
-            dropdown.style.display = 'none';
-        }
+    filtered.slice(0, 10).forEach(p => {
+        const item = document.createElement('div');
+        item.textContent = p.label;
+        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
+        item.onmouseenter = () => item.style.background = '#2a2a2a';
+        item.onmouseleave = () => item.style.background = 'transparent';
+        item.onclick = () => addPlayerTag(p, side, accentColor, inputId, dropdownId);
+        dropdown.appendChild(item);
     });
 
-    async function addGraph() {
-        if (selectedItems.size === 0) {
-            alert('Please select at least one team or player.');
-            return;
-        }
+    dropdown.style.display = 'block';
+}
 
-        const type = document.getElementById('chartType').value;
-        const stat = document.getElementById('chartStat').value;
-        const limit = document.getElementById('chartLimit').value;
+function addPlayerTag(p, side, accentColor, inputId, dropdownId) {
+    document.getElementById(inputId).value = '';
+    document.getElementById(dropdownId).style.display = 'none';
 
-        const params = new URLSearchParams();
-        params.append('type', type);
-        params.append('stat', stat);
-        params.append('limit', limit);
+    // Default: both home and away
+    const key = `${p.player_name}||${p.team_name}||${side}||both`;
+    if (graphPlayers.has(key)) return;
 
-        const selectionKeys = [...selectedItems.keys()];
-        const selectionLabels = [...selectedItems.values()];
+    graphPlayers.set(key, { option: p, homeAway: 'both' });
 
-        selectionKeys.forEach(k => params.append('selections', k));
+    const sideLabel = side === 'yours' ? 'Yours' : 'Opp';
+    const tag = document.createElement('span');
+    tag.className = 'player-tag';
+    tag.dataset.key = key;
+    tag.style.background = accentColor;
 
-        const response = await fetch(`/api/chart_data?${params.toString()}`);
-        const data = await response.json();
+    tag.innerHTML = `
+        <span class="tag-name">${p.player_name} (${p.team_name}) [${sideLabel}]</span>
+        <button class="tag-control active" data-ha="both" onclick="setHomeAway(this, '${key}', 'both')">All</button>
+        <button class="tag-control" data-ha="home" onclick="setHomeAway(this, '${key}', 'home')">H</button>
+        <button class="tag-control" data-ha="away" onclick="setHomeAway(this, '${key}', 'away')">A</button>
+        <span style="cursor:pointer; font-weight:bold; margin-left:0.25rem;" onclick="removePlayerTag('${key}')">×</span>
+    `;
 
-        const graphId = `graph_${graphCount++}`;
-        const statLabel = document.getElementById('chartStat').options[document.getElementById('chartStat').selectedIndex].text;
-        const limitLabel = document.getElementById('chartLimit').options[document.getElementById('chartLimit').selectedIndex].text;
+    document.getElementById('playerTags').appendChild(tag);
+}
 
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.id = graphId;
-        card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                <h2>${statLabel} — ${selectionLabels.join(' vs ')} (${limitLabel})</h2>
-                <button onclick="removeGraph('${graphId}')"
-                    style="background:none; border:1px solid #333; color:#666; padding:0.3rem 0.8rem; border-radius:4px; cursor:pointer; font-size:0.8rem;">
-                    Remove
-                </button>
-            </div>
-            <canvas id="canvas_${graphId}" height="80"></canvas>
-        `;
+function setHomeAway(btn, oldKey, newHa) {
+    const tag = btn.closest('.player-tag');
+    const parts = oldKey.split('||');
+    const player_name = parts[0];
+    const team_name = parts[1];
+    const side = parts[2];
+    const newKey = `${player_name}||${team_name}||${side}||${newHa}`;
 
-        document.getElementById('graphsContainer').appendChild(card);
+    // Update map
+    const entry = graphPlayers.get(oldKey);
+    if (!entry) return;
+    graphPlayers.delete(oldKey);
+    graphPlayers.set(newKey, { ...entry, homeAway: newHa });
 
-        const allDates = [...new Set(
-            Object.values(data).flatMap(d => d.map(g => g.date))
-        )].sort();
+    // Update tag key
+    tag.dataset.key = newKey;
 
-        console.log('Data received:', JSON.stringify(Object.keys(data)));
-        console.log('Selection keys:', selectionKeys);
-        const datasets = selectionKeys.map((key, i) => {
-            const gameData = data[key] || [];
-            const dateMap = {};
-            gameData.forEach(g => dateMap[g.date] = g);
+    // Update button onclick refs
+    tag.querySelectorAll('.tag-control').forEach(b => {
+        const ha = b.dataset.ha;
+        b.onclick = () => setHomeAway(b, newKey, ha);
+        b.classList.toggle('active', ha === newHa);
+    });
 
-            return {
-                label: selectionLabels[i],
-                data: allDates.map(d => dateMap[d] ? dateMap[d].value : null),
-                borderColor: lineColors[i % lineColors.length],
-                backgroundColor: lineColors[i % lineColors.length] + '20',
-                borderWidth: 2,
-                pointRadius: 4,
-                pointBackgroundColor: allDates.map(d => {
-                    if (!dateMap[d]) return '#444';
-                    return dateMap[d].win_loss === 'W' ? '#4caf50' : '#98002E';
-                }),
-                tension: 0.3,
-                fill: false,
-                spanGaps: false
-            };
+    // Update remove button
+    tag.querySelector('span[style*="cursor:pointer"]').onclick = () => removePlayerTag(newKey);
+}
+
+function removePlayerTag(key) {
+    graphPlayers.delete(key);
+    const tag = document.querySelector(`.player-tag[data-key="${CSS.escape(key)}"]`);
+    if (tag) tag.remove();
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', (e) => {
+    ['yourPlayerDropdown', 'oppPlayerDropdown', 'playerDropdown', 'matchupPlayerDropdown'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+    });
+});
+document.getElementById('yourPlayerInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('oppPlayerInput')?.addEventListener('click', e => e.stopPropagation());
+
+async function addGraph() {
+    const type = document.getElementById('chartType').value;
+    const stat = document.getElementById('chartStat').value;
+    const limit = document.getElementById('chartLimit').value;
+    const statLabel = document.getElementById('chartStat').selectedOptions[0].text;
+    const limitLabel = document.getElementById('chartLimit').selectedOptions[0].text;
+
+    let data, selectionKeys, selectionLabels, apiUrl;
+
+    if (type === 'team') {
+        if (selectedTeams.size === 0) { alert('Select at least one team.'); return; }
+        const params = new URLSearchParams({ type: 'team', stat, limit });
+        selectedTeams.forEach((v, k) => params.append('selections', k));
+        const res = await fetch(`/api/chart_data?${params}`);
+        data = await res.json();
+        selectionKeys = [...selectedTeams.keys()];
+        selectionLabels = selectionKeys;
+        apiUrl = 'team';
+    } else {
+        if (graphPlayers.size === 0) { alert('Add at least one player.'); return; }
+        const params = new URLSearchParams({ stat, limit });
+        graphPlayers.forEach((v, k) => params.append('selections', k));
+        const res = await fetch(`/api/player_graph_data?${params}`);
+        data = await res.json();
+        selectionKeys = [...graphPlayers.keys()];
+        selectionLabels = selectionKeys.map(k => {
+            const [name, team, side, ha] = k.split('||');
+            const sideLabel = side === 'yours' ? 'Yours' : 'Opp';
+            const haLabel = ha === 'both' ? '' : ` | ${ha === 'home' ? 'Home' : 'Away'}`;
+            return `${name} [${sideLabel}${haLabel}]`;
         });
+    }
 
-        new Chart(document.getElementById(`canvas_${graphId}`), {
-            type: 'line',
-            data: { labels: allDates, datasets },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { labels: { color: '#888' } },
-                    tooltip: {
-                        callbacks: {
-                            afterLabel: (ctx) => {
-                                const key = selectionKeys[ctx.datasetIndex];
-                                const gameData = data[key] || [];
-                                const game = gameData.find(g => g.date === allDates[ctx.dataIndex]);
-                                if (game) return `${game.win_loss === 'W' ? 'WIN' : 'LOSS'} vs ${game.opp_team}`;
-                                return '';
+    renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel);
+}
+
+function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
+    const graphId = `graph_${graphCount++}`;
+
+    const allDates = [...new Set(
+        Object.values(data).flatMap(d => d.map(g => g.date))
+    )].sort();
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = graphId;
+    card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h2>${statLabel} — ${selectionLabels.join(' vs ')} (${limitLabel})</h2>
+            <button onclick="document.getElementById('${graphId}').remove()"
+                style="background:none; border:1px solid #333; color:#666; padding:0.3rem 0.8rem; border-radius:4px; cursor:pointer; font-size:0.8rem;">
+                Remove
+            </button>
+        </div>
+        <canvas id="canvas_${graphId}" height="80"></canvas>
+    `;
+    document.getElementById('graphsContainer').appendChild(card);
+
+    const datasets = selectionKeys.map((key, i) => {
+        const gameData = data[key] || [];
+        const dateMap = {};
+        gameData.forEach(g => dateMap[g.date] = g);
+        return {
+            label: selectionLabels[i],
+            data: allDates.map(d => dateMap[d] ? dateMap[d].value : null),
+            borderColor: lineColors[i % lineColors.length],
+            backgroundColor: lineColors[i % lineColors.length] + '20',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: allDates.map(d => {
+                if (!dateMap[d]) return '#444';
+                return dateMap[d].win_loss === 'W' ? '#4caf50' : '#98002E';
+            }),
+            tension: 0.3,
+            fill: false,
+            spanGaps: false
+        };
+    });
+
+    new Chart(document.getElementById(`canvas_${graphId}`), {
+        type: 'line',
+        data: { labels: allDates, datasets },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#888' } },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: (ctx) => {
+                            const key = selectionKeys[ctx.datasetIndex];
+                            const gameData = data[key] || [];
+                            const game = gameData.find(g => g.date === allDates[ctx.dataIndex]);
+                            if (game) {
+                                const ha = game.home_away === 'H' ? 'Home' : 'Away';
+                                return `${game.win_loss === 'W' ? 'WIN' : 'LOSS'} vs ${game.opp_team} (${ha})`;
                             }
+                            return '';
                         }
                     }
-                },
-                scales: {
-                    x: {
-                        ticks: { color: '#666', maxTicksLimit: 15 },
-                        grid: { color: '#1a1a1a' }
-                    },
-                    y: {
-                        ticks: { color: '#666' },
-                        grid: { color: '#1a1a1a' },
-                        min: 0
-                    }
                 }
+            },
+            scales: {
+                x: { ticks: { color: '#666', maxTicksLimit: 15 }, grid: { color: '#1a1a1a' } },
+                y: { ticks: { color: '#666' }, grid: { color: '#1a1a1a' }, min: 0 }
             }
-        });
-    }
+        }
+    });
+}
 
-    function removeGraph(id) {
-        document.getElementById(id).remove();
-    }
+// ─── TEAM MATCHUP TABLE ──────────────────────────────
 
-    updateSelections();
+const statLabels = {
+    pts: 'PTS', ast: 'AST', reb: 'REB', stl: 'STL',
+    blk: 'BLK', to_: 'TO', fgm: 'FGM', fga: 'FGA',
+    fg_pct: 'FG%', tpm: '3PM', tpa: '3PA', three_pct: '3P%',
+    ftm: 'FTM', fta: 'FTA', ft_pct: 'FT%'
+};
+
+function buildComparisonTable(overall, vs_opp, label) {
+    const stats = Object.keys(statLabels);
+    let rows = '';
+    stats.forEach(stat => {
+        if (overall[stat] === undefined) return;
+        const o = overall[stat] ?? '-';
+        const v = vs_opp[stat] ?? '-';
+        let diff = '-', diffColor = '#888';
+        if (typeof o === 'number' && typeof v === 'number') {
+            const d = (v - o).toFixed(2);
+            diff = d > 0 ? `+${d}` : `${d}`;
+            diffColor = d > 0 ? '#4caf50' : d < 0 ? '#98002E' : '#888';
+        }
+        rows += `<tr>
+            <td>${statLabels[stat]}</td>
+            <td>${o}</td>
+            <td>${v}</td>
+            <td style="color:${diffColor}; font-weight:600;">${diff}</td>
+        </tr>`;
+    });
+    return `
+        <div style="margin-bottom:1.5rem;">
+            <h3 style="margin-bottom:0.75rem;">${label}</h3>
+            <table>
+                <thead><tr><th>Stat</th><th>Overall Avg</th><th>vs Opponent</th><th>Diff</th></tr></thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>`;
+}
+
+async function loadTeamMatchup() {
+    const yourTeam = document.getElementById('teamMatchupYourTeam').value;
+    const oppTeam = document.getElementById('teamMatchupOppTeam').value;
+    if (!oppTeam) { alert('Please select an opponent team.'); return; }
+    const params = new URLSearchParams({ type: 'team', your_team: yourTeam, opp_team: oppTeam });
+    const res = await fetch(`/api/matchup_data?${params}`);
+    const data = await res.json();
+    const label = `${yourTeam === 'all' ? 'All Teams' : yourTeam} vs ${oppTeam} (${data.games_vs} games of ${data.total_games} total)`;
+    document.getElementById('teamMatchupResults').innerHTML = buildComparisonTable(data.overall, data.vs_opp, label);
+}
+
+// ─── PLAYER MATCHUP TABLE ────────────────────────────
+
+function filterMatchupDropdown() {
+    const input = document.getElementById('matchupPlayerInput').value.toLowerCase();
+    const dropdown = document.getElementById('matchupPlayerDropdown');
+    dropdown.innerHTML = '';
+    const filtered = matchupPlayerOptions.filter(p =>
+        p.label.toLowerCase().includes(input) && !matchupPlayers.has(p.key)
+    );
+    if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+    filtered.slice(0, 10).forEach(p => {
+        const item = document.createElement('div');
+        item.textContent = p.label;
+        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
+        item.onmouseenter = () => item.style.background = '#2a2a2a';
+        item.onmouseleave = () => item.style.background = 'transparent';
+        item.onclick = () => {
+            matchupPlayers.set(p.key, p.label);
+            document.getElementById('matchupPlayerInput').value = '';
+            dropdown.style.display = 'none';
+            const tag = document.createElement('span');
+            tag.style.cssText = 'background:#98002E; color:#fff; padding:0.3rem 0.8rem; border-radius:4px; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.5rem;';
+            tag.dataset.key = p.key;
+            tag.innerHTML = `${p.label} <span style="cursor:pointer; font-weight:bold;" onclick="matchupPlayers.delete('${p.key}'); this.parentElement.remove();">×</span>`;
+            document.getElementById('matchupPlayerTags').appendChild(tag);
+        };
+        dropdown.appendChild(item);
+    });
+    dropdown.style.display = 'block';
+}
+
+async function loadPlayerMatchup() {
+    const oppTeam = document.getElementById('playerMatchupOppTeam').value;
+    if (!oppTeam) { alert('Please select an opponent team.'); return; }
+    if (matchupPlayers.size === 0) { alert('Please add at least one player.'); return; }
+    const params = new URLSearchParams({ type: 'player', opp_team: oppTeam });
+    matchupPlayers.forEach((label, key) => params.append('selections', key));
+    const res = await fetch(`/api/matchup_data?${params}`);
+    const data = await res.json();
+    const container = document.getElementById('playerMatchupResults');
+    container.innerHTML = '';
+    Object.values(data).forEach(player => {
+        const label = `${player.player_name} (${player.team_name}) vs ${oppTeam} (${player.games_vs} of ${player.total_games} games)`;
+        container.innerHTML += buildComparisonTable(player.overall, player.vs_opp, label);
+    });
+}
+
+// Init
+updateSelections();
 </script>
 
 {% endblock %}

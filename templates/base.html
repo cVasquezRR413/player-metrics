@@ -168,10 +168,9 @@
         <a href="/" {% if request.path == '/' %}class="active"{% endif %}>Home</a>
         <a href="/box_score" {% if request.path == '/box_score' %}class="active"{% endif %}>Box Scores</a>
         <a href="/trends" {% if request.path == '/trends' %}class="active"{% endif %}>Averages</a>
-        <a href="/analysis" {% if request.path == '/analysis' %}class="active"{% endif %}>Analysis</a>
+        <a href="/analysis" {% if request.path in ['/analysis', '/matchups'] %}class="active"{% endif %}>Analysis</a>
         <a href="/players" {% if request.path == '/players' %}class="active"{% endif %}>Players</a>
         <a href="/search" {% if request.path == '/search' %}class="active"{% endif %}>Search</a>
-        <a href="/matchups" {% if request.path == '/matchups' %}class="active"{% endif %}>Matchups</a>
     </nav>
     <div class="container">
         {% block content %}{% endblock %}
