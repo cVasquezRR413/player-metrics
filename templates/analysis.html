@@ -76,6 +76,11 @@
 
         </div>
 
+        <label style="display:flex; align-items:center; gap:0.5rem; color:#aaa; font-size:0.85rem; margin-bottom:1rem;">
+            <input type="checkbox" id="teamHeadToHead" checked>
+            Head-to-head only
+        </label>
+
         <!-- TEAM TAGS -->
         <div id="teamTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
 
@@ -474,7 +479,17 @@ async function addGraph() {
 
     if (type === 'team') {
         if (selectedTeams.size === 0) { alert('Select at least one team.'); return; }
-        const params = new URLSearchParams({ type: 'team', stat, limit });
+
+        const headToHead = document.getElementById('teamHeadToHead').checked;
+        const hasYourTeam = [...selectedTeams.values()].some(t => t.side === 'yours');
+        const hasOppTeam = [...selectedTeams.values()].some(t => t.side === 'opp');
+
+        if (headToHead && (!hasYourTeam || !hasOppTeam)) {
+            alert('Head-to-head graphs need at least one Your Team and one Opponent Team.');
+            return;
+        }
+
+        const params = new URLSearchParams({ type: 'team', stat, limit, head_to_head: headToHead ? '1' : '0' });
         selectedTeams.forEach((v, k) => params.append('selections', k));
         const res = await fetch(`/api/chart_data?${params}`);
         data = await res.json();

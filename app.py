@@ -465,10 +465,25 @@ def chart_data():
     chart_type = request.args.get('type', 'team')
     stat = request.args.get('stat', 'points')
     limit = request.args.get('limit', 'all')
+    head_to_head = request.args.get('head_to_head', '0') == '1'
     selections = request.args.getlist('selections')
     print("Selections received:", selections)
 
     results = {}
+
+    your_team_selections = []
+    opp_team_selections = []
+
+    if chart_type == 'team':
+        for selection in selections:
+            parts = selection.split('||')
+            team_name = parts[0]
+            side = parts[1] if len(parts) > 1 else 'yours'
+
+            if side == 'yours':
+                your_team_selections.append(team_name)
+            else:
+                opp_team_selections.append(team_name)
 
     for selection in selections:
         if chart_type == 'team':
@@ -476,6 +491,20 @@ def chart_data():
             team_name = parts[0]
             side = parts[1] if len(parts) > 1 else 'yours'
             is_your_team = 1 if side == 'yours' else 0
+
+            h2h_filter = ''
+            h2h_params = []
+
+            if head_to_head:
+                opposite_teams = opp_team_selections if side == 'yours' else your_team_selections
+
+                if opposite_teams:
+                    placeholders = ','.join(['?'] * len(opposite_teams))
+                    h2h_filter = f"AND t_other.team_name IN ({placeholders})"
+                    h2h_params = opposite_teams
+                else:
+                    results[selection] = []
+                    continue
 
             query = f"""
                 SELECT g.game_id, g.date, g.win_loss, g.home_away,
@@ -489,10 +518,12 @@ def chart_data():
                     AND t_other.is_your_team != t.is_your_team
                 JOIN player_stats ps ON ps.team_id = t.team_id
                     AND ps.game_id = g.game_id
+                WHERE 1 = 1
+                {h2h_filter}
                 GROUP BY g.game_id
                 ORDER BY g.date ASC, g.game_id ASC
             """
-            df = pd.read_sql_query(query, conn, params=(is_your_team, team_name))
+            df = pd.read_sql_query(query, conn, params=[is_your_team, team_name] + h2h_params)
         else:
             parts = selection.split('||')
             player_name = parts[0]
