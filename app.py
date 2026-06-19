@@ -472,19 +472,27 @@ def chart_data():
 
     for selection in selections:
         if chart_type == 'team':
+            parts = selection.split('||')
+            team_name = parts[0]
+            side = parts[1] if len(parts) > 1 else 'yours'
+            is_your_team = 1 if side == 'yours' else 0
+
             query = f"""
-                SELECT g.game_id, g.date, g.win_loss, t2.team_name as opp_team,
+                SELECT g.game_id, g.date, g.win_loss, g.home_away,
+                    t_other.team_name as opp_team,
                     SUM(ps.{stat}) as value
                 FROM games g
-                JOIN teams t1 ON g.game_id = t1.game_id AND t1.is_your_team = 1
-                JOIN teams t2 ON g.game_id = t2.game_id AND t2.is_your_team = 0
-                JOIN player_stats ps ON ps.game_id = g.game_id
-                JOIN teams pt ON ps.team_id = pt.team_id AND pt.is_your_team = 1
-                WHERE t1.team_name = ?
+                JOIN teams t ON g.game_id = t.game_id
+                    AND t.is_your_team = ?
+                    AND t.team_name = ?
+                JOIN teams t_other ON g.game_id = t_other.game_id
+                    AND t_other.is_your_team != t.is_your_team
+                JOIN player_stats ps ON ps.team_id = t.team_id
+                    AND ps.game_id = g.game_id
                 GROUP BY g.game_id
                 ORDER BY g.date ASC, g.game_id ASC
             """
-            df = pd.read_sql_query(query, conn, params=(selection,))
+            df = pd.read_sql_query(query, conn, params=(is_your_team, team_name))
         else:
             parts = selection.split('||')
             player_name = parts[0]

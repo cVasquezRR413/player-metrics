@@ -43,8 +43,43 @@
         </div>
     </div>
 
-    <!-- TEAM BUTTONS -->
-    <div id="teamButtons" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem;"></div>
+    <!-- TEAM BUILDER -->
+    <div id="teamBuilder">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+
+            <!-- YOUR TEAMS -->
+            <div>
+                <label class="field-label" style="color:#98002E;">Your Teams</label>
+                <div style="position:relative;">
+                    <input type="text" id="yourTeamInput" placeholder="Search your teams..."
+                        oninput="filterTeamDropdown('yours')" onfocus="filterTeamDropdown('yours')"
+                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                    <div id="yourTeamDropdown"
+                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- OPPONENT TEAMS -->
+            <div>
+                <label class="field-label" style="color:#2196F3;">Opponent Teams</label>
+                <div style="position:relative;">
+                    <input type="text" id="oppTeamInput" placeholder="Search opponent teams..."
+                        oninput="filterTeamDropdown('opp')" onfocus="filterTeamDropdown('opp')"
+                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                    <div id="oppTeamDropdown"
+                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- TEAM TAGS -->
+        <div id="teamTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
+
+    </div>
 
     <!-- PLAYER BUILDER -->
     <div id="playerBuilder" style="display:none;">
@@ -195,8 +230,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
 const teams = {{ teams | tojson }};
+const oppTeams = {{ opp_teams | tojson }};
 const yourPlayers = {{ your_players | tojson }};
 const oppPlayers = {{ opp_players | tojson }};
+
+const yourTeamOptions = teams.map(t => ({
+    label: t,
+    team_name: t,
+    side: 'yours',
+    key: `${t}||yours`
+}));
+
+const oppTeamOptions = oppTeams.map(t => ({
+    label: t,
+    team_name: t,
+    side: 'opp',
+    key: `${t}||opp`
+}));
 
 const yourPlayerOptions = yourPlayers.map(p => ({
     label: `${p.player_name} (${p.team_name})`,
@@ -240,43 +290,73 @@ function updateSelections() {
     const type = document.getElementById('chartType').value;
     selectedTeams.clear();
     graphPlayers.clear();
+    document.getElementById('teamTags').innerHTML = '';
     document.getElementById('playerTags').innerHTML = '';
 
     if (type === 'team') {
-        document.getElementById('teamButtons').style.display = 'flex';
+        document.getElementById('teamBuilder').style.display = 'block';
         document.getElementById('playerBuilder').style.display = 'none';
-        renderTeamButtons();
     } else {
-        document.getElementById('teamButtons').style.display = 'none';
+        document.getElementById('teamBuilder').style.display = 'none';
         document.getElementById('playerBuilder').style.display = 'block';
     }
 }
 
-function renderTeamButtons() {
-    const container = document.getElementById('teamButtons');
-    container.innerHTML = '';
-    teams.forEach(item => {
-        const btn = document.createElement('button');
-        btn.textContent = item;
-        btn.dataset.value = item;
-        btn.style.cssText = 'background:#1a1a1a; color:#888; border:1px solid #333; padding:0.4rem 0.8rem; border-radius:4px; cursor:pointer; font-size:0.8rem;';
-        btn.onclick = () => toggleTeam(btn, item);
-        container.appendChild(btn);
+function filterTeamDropdown(side) {
+    const inputId = side === 'yours' ? 'yourTeamInput' : 'oppTeamInput';
+    const dropdownId = side === 'yours' ? 'yourTeamDropdown' : 'oppTeamDropdown';
+    const options = side === 'yours' ? yourTeamOptions : oppTeamOptions;
+    const accentColor = side === 'yours' ? '#98002E' : '#2196F3';
+
+    const input = document.getElementById(inputId).value.toLowerCase();
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.innerHTML = '';
+
+    const filtered = options.filter(t =>
+        t.label.toLowerCase().includes(input) && !selectedTeams.has(t.key)
+    );
+
+    if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+
+    filtered.slice(0, 10).forEach(t => {
+        const item = document.createElement('div');
+        item.textContent = t.label;
+        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
+        item.onmouseenter = () => item.style.background = '#2a2a2a';
+        item.onmouseleave = () => item.style.background = 'transparent';
+        item.onclick = () => addTeamTag(t, accentColor, inputId, dropdownId);
+        dropdown.appendChild(item);
     });
+
+    dropdown.style.display = 'block';
 }
 
-function toggleTeam(btn, item) {
-    if (selectedTeams.has(item)) {
-        selectedTeams.delete(item);
-        btn.style.background = '#1a1a1a';
-        btn.style.color = '#888';
-        btn.style.borderColor = '#333';
-    } else {
-        selectedTeams.set(item, item);
-        btn.style.background = '#98002E';
-        btn.style.color = '#fff';
-        btn.style.borderColor = '#98002E';
-    }
+function addTeamTag(t, accentColor, inputId, dropdownId) {
+    document.getElementById(inputId).value = '';
+    document.getElementById(dropdownId).style.display = 'none';
+
+    if (selectedTeams.has(t.key)) return;
+
+    selectedTeams.set(t.key, t);
+
+    const sideLabel = t.side === 'yours' ? 'Yours' : 'Opp';
+    const tag = document.createElement('span');
+    tag.className = 'player-tag';
+    tag.dataset.key = t.key;
+    tag.style.background = accentColor;
+
+    tag.innerHTML = `
+        <span class="tag-name">${t.team_name} [${sideLabel}]</span>
+        <span style="cursor:pointer; font-weight:bold; margin-left:0.25rem;" onclick="removeTeamTag('${t.key}')">×</span>
+    `;
+
+    document.getElementById('teamTags').appendChild(tag);
+}
+
+function removeTeamTag(key) {
+    selectedTeams.delete(key);
+    const tag = document.querySelector(`.player-tag[data-key="${CSS.escape(key)}"]`);
+    if (tag) tag.remove();
 }
 
 function filterDropdown(side) {
@@ -373,11 +453,13 @@ function removePlayerTag(key) {
 
 // Close dropdowns on outside click
 document.addEventListener('click', (e) => {
-    ['yourPlayerDropdown', 'oppPlayerDropdown', 'playerDropdown', 'matchupPlayerDropdown'].forEach(id => {
+    ['yourTeamDropdown', 'oppTeamDropdown', 'yourPlayerDropdown', 'oppPlayerDropdown', 'playerDropdown', 'matchupPlayerDropdown'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
 });
+document.getElementById('yourTeamInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('oppTeamInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('yourPlayerInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('oppPlayerInput')?.addEventListener('click', e => e.stopPropagation());
 
@@ -397,7 +479,11 @@ async function addGraph() {
         const res = await fetch(`/api/chart_data?${params}`);
         data = await res.json();
         selectionKeys = [...selectedTeams.keys()];
-        selectionLabels = selectionKeys;
+        selectionLabels = selectionKeys.map(k => {
+            const team = selectedTeams.get(k);
+            const sideLabel = team.side === 'yours' ? 'Yours' : 'Opp';
+            return `${team.team_name} [${sideLabel}]`;
+        });
         apiUrl = 'team';
     } else {
         if (graphPlayers.size === 0) { alert('Add at least one player.'); return; }
