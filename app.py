@@ -473,7 +473,7 @@ def chart_data():
     for selection in selections:
         if chart_type == 'team':
             query = f"""
-                SELECT g.date, g.win_loss, t2.team_name as opp_team,
+                SELECT g.game_id, g.date, g.win_loss, t2.team_name as opp_team,
                     SUM(ps.{stat}) as value
                 FROM games g
                 JOIN teams t1 ON g.game_id = t1.game_id AND t1.is_your_team = 1
@@ -482,7 +482,7 @@ def chart_data():
                 JOIN teams pt ON ps.team_id = pt.team_id AND pt.is_your_team = 1
                 WHERE t1.team_name = ?
                 GROUP BY g.game_id
-                ORDER BY g.date ASC
+                ORDER BY g.date ASC, g.game_id ASC
             """
             df = pd.read_sql_query(query, conn, params=(selection,))
         else:
@@ -497,7 +497,7 @@ def chart_data():
                 JOIN games g ON ps.game_id = g.game_id
                 JOIN teams t2 ON g.game_id = t2.game_id AND t2.is_your_team = 0
                 WHERE t.is_your_team = 1 AND ps.player_name = ? AND t.team_name = ?
-                ORDER BY g.date ASC
+                ORDER BY g.date ASC, g.game_id ASC
             """
             df = pd.read_sql_query(query, conn, params=(player_name, team_name))
 
@@ -552,7 +552,7 @@ def player_graph_data():
             AND ps.player_name = ?
             AND t.team_name = ?
             {home_away_filter}
-            ORDER BY g.date ASC
+            ORDER BY g.date ASC, g.game_id ASC
         """
 
         df = pd.read_sql_query(query, conn, params=(is_your_team, player_name, team_name))

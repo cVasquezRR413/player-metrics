@@ -420,9 +420,29 @@ async function addGraph() {
 function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
     const graphId = `graph_${graphCount++}`;
 
-    const allDates = [...new Set(
-        Object.values(data).flatMap(d => d.map(g => g.date))
-    )].sort();
+    const allGames = [];
+    const seenGames = new Set();
+
+    Object.values(data).forEach(gameList => {
+        gameList.forEach(g => {
+            if (!seenGames.has(g.game_id)) {
+                seenGames.add(g.game_id);
+                allGames.push({
+                    game_id: g.game_id,
+                    date: g.date
+                });
+            }
+        });
+    });
+
+    allGames.sort((a, b) => {
+        if (a.date === b.date) {
+            return a.game_id - b.game_id;
+        }
+        return a.date.localeCompare(b.date);
+    });
+
+    const labels = allGames.map(g => g.date);
 
     const card = document.createElement('div');
     card.className = 'card';
@@ -441,18 +461,20 @@ function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel
 
     const datasets = selectionKeys.map((key, i) => {
         const gameData = data[key] || [];
-        const dateMap = {};
-        gameData.forEach(g => dateMap[g.date] = g);
+        const gameMap = {};
+        gameData.forEach(g => gameMap[g.game_id] = g);
+
         return {
             label: selectionLabels[i],
-            data: allDates.map(d => dateMap[d] ? dateMap[d].value : null),
+            data: allGames.map(game => gameMap[game.game_id] ? gameMap[game.game_id].value : null),
             borderColor: lineColors[i % lineColors.length],
             backgroundColor: lineColors[i % lineColors.length] + '20',
             borderWidth: 2,
             pointRadius: 4,
-            pointBackgroundColor: allDates.map(d => {
-                if (!dateMap[d]) return '#444';
-                return dateMap[d].win_loss === 'W' ? '#4caf50' : '#98002E';
+            pointBackgroundColor: allGames.map(game => {
+                const g = gameMap[game.game_id];
+                if (!g) return '#444';
+                return g.win_loss === 'W' ? '#4caf50' : '#98002E';
             }),
             tension: 0.3,
             fill: false,
@@ -462,7 +484,7 @@ function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel
 
     new Chart(document.getElementById(`canvas_${graphId}`), {
         type: 'line',
-        data: { labels: allDates, datasets },
+        data: { labels, datasets },
         options: {
             responsive: true,
             plugins: {
@@ -472,7 +494,7 @@ function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel
                         afterLabel: (ctx) => {
                             const key = selectionKeys[ctx.datasetIndex];
                             const gameData = data[key] || [];
-                            const game = gameData.find(g => g.date === allDates[ctx.dataIndex]);
+                            const game = gameData.find(g => g.game_id === allGames[ctx.dataIndex].game_id);
                             if (game) {
                                 const ha = game.home_away === 'H' ? 'Home' : 'Away';
                                 return `${game.win_loss === 'W' ? 'WIN' : 'LOSS'} vs ${game.opp_team} (${ha})`;
