@@ -558,8 +558,26 @@ def player_graph_data():
     selections = request.args.getlist('selections')
     stat = request.args.get('stat', 'points')
     limit = request.args.get('limit', 'all')
+    head_to_head = request.args.get('head_to_head', '0') == '1'
 
     results = {}
+
+    your_player_selections = []
+    opp_player_selections = []
+
+    for selection in selections:
+        parts = selection.split('||')
+        if len(parts) < 3:
+            continue
+
+        player_name = parts[0]
+        team_name = parts[1]
+        side = parts[2]
+
+        if side == 'yours':
+            your_player_selections.append((player_name, team_name))
+        else:
+            opp_player_selections.append((player_name, team_name))
 
     for selection in selections:
         parts = selection.split('||')
@@ -579,6 +597,37 @@ def player_graph_data():
         elif home_away == 'away':
             home_away_filter = "AND g.home_away = 'A'"
 
+        h2h_filter = ''
+        h2h_params = []
+
+        if head_to_head:
+            opposite_players = opp_player_selections if side == 'yours' else your_player_selections
+
+            if opposite_players:
+                player_conditions = []
+
+                for opp_player_name, opp_team_name in opposite_players:
+                    player_conditions.append("""
+                        (ps_opp.player_name = ? AND t_opp.team_name = ?)
+                    """)
+                    h2h_params.extend([opp_player_name, opp_team_name])
+
+                h2h_filter = f"""
+                    AND EXISTS (
+                        SELECT 1
+                        FROM player_stats ps_opp
+                        JOIN teams t_opp ON ps_opp.team_id = t_opp.team_id
+                        WHERE ps_opp.game_id = g.game_id
+                        AND t_opp.is_your_team != t.is_your_team
+                        AND (
+                            {' OR '.join(player_conditions)}
+                        )
+                    )
+                """
+            else:
+                results[selection] = []
+                continue
+
         query = f"""
             SELECT g.game_id, g.date, g.win_loss, g.home_away,
                    t2.team_name as opp_team,
@@ -591,10 +640,15 @@ def player_graph_data():
             AND ps.player_name = ?
             AND t.team_name = ?
             {home_away_filter}
+            {h2h_filter}
             ORDER BY g.date ASC, g.game_id ASC
         """
 
-        df = pd.read_sql_query(query, conn, params=(is_your_team, player_name, team_name))
+        df = pd.read_sql_query(
+            query,
+            conn,
+            params=[is_your_team, player_name, team_name] + h2h_params
+        )
 
         if limit != 'all':
             df = df.tail(int(limit))
