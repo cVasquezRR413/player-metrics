@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Efficiency</h1>
+
+<select onchange="window.location.href='/efficiency?team=' + encodeURIComponent(this.value)">
+    <option value="all" {% if selected_team == 'all' %}selected{% endif %}>All Teams</option>
+    {% for team in teams %}
+    <option value="{{ team }}" {% if selected_team == team %}selected{% endif %}>{{ team }}</option>
+    {% endfor %}
+</select>
+
+<div class="card">
+    <h2>{{ selected_team if selected_team != 'all' else 'All Players' }} — Scoring Volume vs True Shooting</h2>
+    <canvas id="efficiencyChart" height="110"></canvas>
+</div>
+
+<div class="card">
+    <h2>Efficiency Table</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Team</th>
+                <th>Player</th>
+                <th>PPG</th>
+                <th>TS%</th>
+                <th>eFG%</th>
+                <th>FGA</th>
+                <th>FTA</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in players %}
+            <tr>
+                <td style="color:#666; font-size:0.8rem;">{{ p.team_name }}</td>
+                <td>{{ p.player_name }}</td>
+                <td style="color:#fff; font-weight:600;">{{ p.points }}</td>
+                <td>{{ p.ts_pct if p.ts_pct is not none else '—' }}</td>
+                <td>{{ p.efg_pct if p.efg_pct is not none else '—' }}</td>
+                <td>{{ p.fg_attempted }}</td>
+                <td>{{ p.ft_attempted }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+const players = {{ players | tojson }};
+
+const chartPlayers = players.filter(p =>
+    p.ts_pct !== null &&
+    p.ts_pct !== undefined &&
+    p.points !== null &&
+    p.points !== undefined
+);
+
+const scatterData = chartPlayers.map(p => ({
+    x: p.points,
+    y: p.ts_pct,
+    player_name: p.player_name,
+    team_name: p.team_name,
+    efg_pct: p.efg_pct
+}));
+
+new Chart(document.getElementById('efficiencyChart'), {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Players',
+            data: scatterData,
+            backgroundColor: '#98002E',
+            borderColor: '#98002E',
+            pointRadius: 5,
+            pointHoverRadius: 7
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: { color: '#888' }
+            },
+            tooltip: {
+                callbacks: {
+                    label: (ctx) => {
+                        const p = ctx.raw;
+                        const ts = p.y !== null ? p.y.toFixed(3) : '—';
+                        const efg = p.efg_pct !== null && p.efg_pct !== undefined ? p.efg_pct.toFixed(3) : '—';
+
+                        return [
+                            `${p.player_name} (${p.team_name})`,
+                            `PPG: ${p.x.toFixed(2)}`,
+                            `TS%: ${ts}`,
+                            `eFG%: ${efg}`
+                        ];
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                title: {
+                    display: true,
+                    text: 'Points Per Game',
+                    color: '#888'
+                },
+                ticks: { color: '#666' },
+                grid: { color: '#1a1a1a' },
+                min: 0
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'True Shooting %',
+                    color: '#888'
+                },
+                ticks: { color: '#666' },
+                grid: { color: '#1a1a1a' },
+                min: 0
+            }
+        }
+    }
+});
+</script>
+
+{% endblock %}

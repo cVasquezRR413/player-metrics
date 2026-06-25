@@ -4,6 +4,15 @@ from database import get_connection
 
 app = Flask(__name__)
 
+def safe_pct(numerator, denominator, decimals=3):
+    result = numerator / denominator
+    result = result.where(denominator != 0)
+    return result.round(decimals)
+
+
+def clean_records(df):
+    return df.astype(object).where(pd.notnull(df), None).to_dict('records')
+
 @app.route("/")
 def home():
     conn = get_connection()
@@ -151,17 +160,83 @@ def players():
     if selected_team != 'all':
         stats = stats[stats['team_name'] == selected_team]
 
-    stats['fg_pct'] = (stats['fg_made'] / stats['fg_attempted']).round(3)
-    stats['three_pct'] = (stats['three_made'] / stats['three_attempted']).round(3)
-    stats['ft_pct'] = (stats['ft_made'] / stats['ft_attempted']).round(3)
+    averages = stats.groupby(['team_name', 'player_name']).mean(numeric_only=True).reset_index()
 
-    averages = stats.groupby(['team_name', 'player_name']).mean(numeric_only=True).round(2).reset_index()
+    averages['fg_pct'] = safe_pct(averages['fg_made'], averages['fg_attempted'])
+    averages['three_pct'] = safe_pct(averages['three_made'], averages['three_attempted'])
+    averages['ft_pct'] = safe_pct(averages['ft_made'], averages['ft_attempted'])
+    averages['efg_pct'] = safe_pct(
+        averages['fg_made'] + (0.5 * averages['three_made']),
+        averages['fg_attempted']
+    )
+    averages['ts_pct'] = safe_pct(
+        averages['points'],
+        2 * (averages['fg_attempted'] + (0.44 * averages['ft_attempted']))
+    )
+
+    averages = averages.round(2)
+    averages[['fg_pct', 'three_pct', 'ft_pct', 'efg_pct', 'ts_pct']] = averages[
+        ['fg_pct', 'three_pct', 'ft_pct', 'efg_pct', 'ts_pct']
+    ].round(3)
+
     averages = averages.sort_values('points', ascending=False)
 
     conn.close()
 
     return render_template("players.html",
-        players=averages.to_dict('records'),
+        players=clean_records(averages),
+        teams=teams,
+        selected_team=selected_team
+    )
+
+@app.route("/efficiency")
+def efficiency():
+    conn = get_connection()
+
+    selected_team = request.args.get('team', 'all')
+
+    query = """
+        SELECT t.team_name, ps.player_name,
+               ps.points, ps.fg_made, ps.fg_attempted,
+               ps.three_made, ps.ft_attempted
+        FROM player_stats ps
+        JOIN teams t ON ps.team_id = t.team_id
+        WHERE t.is_your_team = 1
+    """
+
+    stats = pd.read_sql_query(query, conn)
+    conn.close()
+
+    if stats.empty:
+        return render_template("efficiency.html",
+            players=[],
+            teams=[],
+            selected_team=selected_team
+        )
+
+    teams = stats['team_name'].unique().tolist()
+
+    if selected_team != 'all':
+        stats = stats[stats['team_name'] == selected_team]
+
+    averages = stats.groupby(['team_name', 'player_name']).mean(numeric_only=True).reset_index()
+
+    averages['efg_pct'] = safe_pct(
+        averages['fg_made'] + (0.5 * averages['three_made']),
+        averages['fg_attempted']
+    )
+    averages['ts_pct'] = safe_pct(
+        averages['points'],
+        2 * (averages['fg_attempted'] + (0.44 * averages['ft_attempted']))
+    )
+
+    averages = averages.round(2)
+    averages[['efg_pct', 'ts_pct']] = averages[['efg_pct', 'ts_pct']].round(3)
+
+    averages = averages.sort_values('points', ascending=False)
+
+    return render_template("efficiency.html",
+        players=clean_records(averages),
         teams=teams,
         selected_team=selected_team
     )
