@@ -162,14 +162,127 @@
 <div id="headToHeadTab" style="display:none;">
 
     <!-- ═══════════════════════════════════════════════════
-         HEAD-TO-HEAD GRAPH BUILDER PLACEHOLDER
+         HEAD-TO-HEAD GRAPH BUILDER
     ════════════════════════════════════════════════════ -->
     <div class="card">
         <h2>Head-to-Head Graph Builder</h2>
-        <p style="color:#888; margin-bottom:0;">
-            Coming next: two-sided Your Side / Opponent Side graph builder for matchup-only graphs.
-        </p>
+
+        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-bottom:1rem;">
+            <div>
+                <label class="field-label">Type</label>
+                <select id="h2hChartType" onchange="updateH2HSelections()" style="width:100%;">
+                    <option value="team">Team</option>
+                    <option value="player">Player</option>
+                </select>
+            </div>
+            <div>
+                <label class="field-label">Stat</label>
+                <select id="h2hChartStat" style="width:100%;">
+                    <option value="points">Points</option>
+                    <option value="assists">Assists</option>
+                    <option value="rebounds">Rebounds</option>
+                    <option value="steals">Steals</option>
+                    <option value="blocks">Blocks</option>
+                    <option value="turnovers">Turnovers</option>
+                    <option value="fg_made">FG Made</option>
+                    <option value="three_made">3PM</option>
+                    <option value="plus_minus">Plus/Minus</option>
+                    <option value="dunks">Dunks</option>
+                </select>
+            </div>
+            <div>
+                <label class="field-label">Last N Matchups</label>
+                <select id="h2hChartLimit" style="width:100%;">
+                    <option value="all">All Matchups</option>
+                    <option value="5">Last 5</option>
+                    <option value="10" selected>Last 10</option>
+                    <option value="20">Last 20</option>
+                    <option value="50">Last 50</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- H2H TEAM BUILDER -->
+        <div id="h2hTeamBuilder">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+
+                <!-- H2H YOUR TEAMS -->
+                <div>
+                    <label class="field-label" style="color:#98002E;">Your Side</label>
+                    <div style="position:relative;">
+                        <input type="text" id="h2hYourTeamInput" placeholder="Search your teams..."
+                            oninput="filterH2HTeamDropdown('yours')" onfocus="filterH2HTeamDropdown('yours')"
+                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                        <div id="h2hYourTeamDropdown"
+                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- H2H OPPONENT TEAMS -->
+                <div>
+                    <label class="field-label" style="color:#2196F3;">Opponent Side</label>
+                    <div style="position:relative;">
+                        <input type="text" id="h2hOppTeamInput" placeholder="Search opponent teams..."
+                            oninput="filterH2HTeamDropdown('opp')" onfocus="filterH2HTeamDropdown('opp')"
+                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                        <div id="h2hOppTeamDropdown"
+                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="h2hTeamTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
+
+        </div>
+
+        <!-- H2H PLAYER BUILDER -->
+        <div id="h2hPlayerBuilder" style="display:none;">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+
+                <!-- H2H YOUR PLAYERS -->
+                <div>
+                    <label class="field-label" style="color:#98002E;">Your Side</label>
+                    <div style="position:relative;">
+                        <input type="text" id="h2hYourPlayerInput" placeholder="Search your roster..."
+                            oninput="filterH2HPlayerDropdown('yours')" onfocus="filterH2HPlayerDropdown('yours')"
+                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                        <div id="h2hYourPlayerDropdown"
+                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- H2H OPPONENT PLAYERS -->
+                <div>
+                    <label class="field-label" style="color:#2196F3;">Opponent Side</label>
+                    <div style="position:relative;">
+                        <input type="text" id="h2hOppPlayerInput" placeholder="Search opponents..."
+                            oninput="filterH2HPlayerDropdown('opp')" onfocus="filterH2HPlayerDropdown('opp')"
+                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                        <div id="h2hOppPlayerDropdown"
+                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="h2hPlayerTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
+
+        </div>
+
+        <button onclick="addH2HGraph()"
+            style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+            Add Graph
+        </button>
     </div>
+
+    <div id="h2hGraphsContainer"></div>
 
     <!-- ═══════════════════════════════════════════════════
          TEAM MATCHUP
@@ -354,6 +467,10 @@ let graphPlayers = new Map();
 
 // Matchup table players
 let matchupPlayers = new Map();
+
+// H2H graph builder selections
+let h2hSelectedTeams = new Map();
+let h2hSelectedPlayers = new Map();
 
 // ─── ANALYSIS TABS ───────────────────────────────────
 
@@ -543,9 +660,178 @@ function removePlayerTag(key) {
     if (tag) tag.remove();
 }
 
+// ─── H2H GRAPH BUILDER UI ────────────────────────────
+
+function updateH2HSelections() {
+    const type = document.getElementById('h2hChartType').value;
+    h2hSelectedTeams.clear();
+    h2hSelectedPlayers.clear();
+    document.getElementById('h2hTeamTags').innerHTML = '';
+    document.getElementById('h2hPlayerTags').innerHTML = '';
+
+    if (type === 'team') {
+        document.getElementById('h2hTeamBuilder').style.display = 'block';
+        document.getElementById('h2hPlayerBuilder').style.display = 'none';
+    } else {
+        document.getElementById('h2hTeamBuilder').style.display = 'none';
+        document.getElementById('h2hPlayerBuilder').style.display = 'block';
+    }
+}
+
+function filterH2HTeamDropdown(side) {
+    const inputId = side === 'yours' ? 'h2hYourTeamInput' : 'h2hOppTeamInput';
+    const dropdownId = side === 'yours' ? 'h2hYourTeamDropdown' : 'h2hOppTeamDropdown';
+    const options = side === 'yours' ? yourTeamOptions : oppTeamOptions;
+    const accentColor = side === 'yours' ? '#98002E' : '#2196F3';
+
+    const input = document.getElementById(inputId).value.toLowerCase();
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.innerHTML = '';
+
+    const filtered = options.filter(t =>
+        t.label.toLowerCase().includes(input) && !h2hSelectedTeams.has(t.key)
+    );
+
+    if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+
+    filtered.slice(0, 10).forEach(t => {
+        const item = document.createElement('div');
+        item.textContent = t.label;
+        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
+        item.onmouseenter = () => item.style.background = '#2a2a2a';
+        item.onmouseleave = () => item.style.background = 'transparent';
+        item.onclick = () => addH2HTeamTag(t, accentColor, inputId, dropdownId);
+        dropdown.appendChild(item);
+    });
+
+    dropdown.style.display = 'block';
+}
+
+function addH2HTeamTag(t, accentColor, inputId, dropdownId) {
+    document.getElementById(inputId).value = '';
+    document.getElementById(dropdownId).style.display = 'none';
+
+    if (h2hSelectedTeams.has(t.key)) return;
+
+    h2hSelectedTeams.set(t.key, t);
+
+    const sideLabel = t.side === 'yours' ? 'Yours' : 'Opp';
+    const tag = document.createElement('span');
+    tag.className = 'player-tag';
+    tag.dataset.key = t.key;
+    tag.style.background = accentColor;
+
+    tag.innerHTML = `
+        <span class="tag-name">${t.team_name} [${sideLabel}]</span>
+        <span style="cursor:pointer; font-weight:bold; margin-left:0.25rem;" onclick="removeH2HTeamTag('${t.key}')">×</span>
+    `;
+
+    document.getElementById('h2hTeamTags').appendChild(tag);
+}
+
+function removeH2HTeamTag(key) {
+    h2hSelectedTeams.delete(key);
+    const tag = document.querySelector(`#h2hTeamTags .player-tag[data-key="${CSS.escape(key)}"]`);
+    if (tag) tag.remove();
+}
+
+function filterH2HPlayerDropdown(side) {
+    const inputId = side === 'yours' ? 'h2hYourPlayerInput' : 'h2hOppPlayerInput';
+    const dropdownId = side === 'yours' ? 'h2hYourPlayerDropdown' : 'h2hOppPlayerDropdown';
+    const options = side === 'yours' ? yourPlayerOptions : oppPlayerOptions;
+    const accentColor = side === 'yours' ? '#98002E' : '#2196F3';
+
+    const input = document.getElementById(inputId).value.toLowerCase();
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.innerHTML = '';
+
+    const existing = new Set([...h2hSelectedPlayers.keys()].filter(k => k.includes(`||${side}`)).map(k => k.split('||').slice(0,2).join('||')));
+    const filtered = options.filter(p =>
+        p.label.toLowerCase().includes(input) && !existing.has(`${p.player_name}||${p.team_name}`)
+    );
+
+    if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+
+    filtered.slice(0, 10).forEach(p => {
+        const item = document.createElement('div');
+        item.textContent = p.label;
+        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
+        item.onmouseenter = () => item.style.background = '#2a2a2a';
+        item.onmouseleave = () => item.style.background = 'transparent';
+        item.onclick = () => addH2HPlayerTag(p, side, accentColor, inputId, dropdownId);
+        dropdown.appendChild(item);
+    });
+
+    dropdown.style.display = 'block';
+}
+
+function addH2HPlayerTag(p, side, accentColor, inputId, dropdownId) {
+    document.getElementById(inputId).value = '';
+    document.getElementById(dropdownId).style.display = 'none';
+
+    const key = `${p.player_name}||${p.team_name}||${side}`;
+    if (h2hSelectedPlayers.has(key)) return;
+
+    h2hSelectedPlayers.set(key, p);
+
+    const sideLabel = side === 'yours' ? 'Yours' : 'Opp';
+    const tag = document.createElement('span');
+    tag.className = 'player-tag';
+    tag.dataset.key = key;
+    tag.style.background = accentColor;
+
+    tag.innerHTML = `
+        <span class="tag-name">${p.player_name} (${p.team_name}) [${sideLabel}]</span>
+        <span style="cursor:pointer; font-weight:bold; margin-left:0.25rem;" onclick="removeH2HPlayerTag('${key}')">×</span>
+    `;
+
+    document.getElementById('h2hPlayerTags').appendChild(tag);
+}
+
+function removeH2HPlayerTag(key) {
+    h2hSelectedPlayers.delete(key);
+    const tag = document.querySelector(`#h2hPlayerTags .player-tag[data-key="${CSS.escape(key)}"]`);
+    if (tag) tag.remove();
+}
+
+function addH2HGraph() {
+    const type = document.getElementById('h2hChartType').value;
+
+    if (type === 'team') {
+        const hasYourTeam = [...h2hSelectedTeams.values()].some(t => t.side === 'yours');
+        const hasOppTeam = [...h2hSelectedTeams.values()].some(t => t.side === 'opp');
+
+        if (!hasYourTeam || !hasOppTeam) {
+            alert('Head-to-head team graphs need at least one Your Side team and one Opponent Side team.');
+            return;
+        }
+    } else {
+        const hasYourPlayer = [...h2hSelectedPlayers.keys()].some(k => k.split('||')[2] === 'yours');
+        const hasOppPlayer = [...h2hSelectedPlayers.keys()].some(k => k.split('||')[2] === 'opp');
+
+        if (!hasYourPlayer || !hasOppPlayer) {
+            alert('Head-to-head player graphs need at least one Your Side player and one Opponent Side player.');
+            return;
+        }
+    }
+
+    alert('Head-to-head graph data wiring comes in the next deliverable.');
+}
+
 // Close dropdowns on outside click
 document.addEventListener('click', (e) => {
-    ['yourTeamDropdown', 'oppTeamDropdown', 'yourPlayerDropdown', 'oppPlayerDropdown', 'playerDropdown', 'matchupPlayerDropdown'].forEach(id => {
+    [
+        'yourTeamDropdown',
+        'oppTeamDropdown',
+        'yourPlayerDropdown',
+        'oppPlayerDropdown',
+        'playerDropdown',
+        'matchupPlayerDropdown',
+        'h2hYourTeamDropdown',
+        'h2hOppTeamDropdown',
+        'h2hYourPlayerDropdown',
+        'h2hOppPlayerDropdown'
+    ].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
@@ -554,6 +840,11 @@ document.getElementById('yourTeamInput')?.addEventListener('click', e => e.stopP
 document.getElementById('oppTeamInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('yourPlayerInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('oppPlayerInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('h2hYourTeamInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('h2hOppTeamInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('h2hYourPlayerInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('h2hOppPlayerInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('matchupPlayerInput')?.addEventListener('click', e => e.stopPropagation());
 
 async function addGraph() {
     const type = document.getElementById('chartType').value;
@@ -809,6 +1100,7 @@ async function loadPlayerMatchup() {
 
 // Init
 updateSelections();
+updateH2HSelections();
 </script>
 
 {% endblock %}
