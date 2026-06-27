@@ -794,8 +794,15 @@ function removeH2HPlayerTag(key) {
     if (tag) tag.remove();
 }
 
-function addH2HGraph() {
+async function addH2HGraph() {
     const type = document.getElementById('h2hChartType').value;
+    const stat = document.getElementById('h2hChartStat').value;
+    const limit = document.getElementById('h2hChartLimit').value;
+    const statLabel = document.getElementById('h2hChartStat').selectedOptions[0].text;
+    const limitLabel = document.getElementById('h2hChartLimit').selectedOptions[0].text;
+
+    let selectionKeys = [];
+    let selectionLabels = [];
 
     if (type === 'team') {
         const hasYourTeam = [...h2hSelectedTeams.values()].some(t => t.side === 'yours');
@@ -805,6 +812,13 @@ function addH2HGraph() {
             alert('Head-to-head team graphs need at least one Your Side team and one Opponent Side team.');
             return;
         }
+
+        selectionKeys = [...h2hSelectedTeams.keys()];
+        selectionLabels = selectionKeys.map(k => {
+            const team = h2hSelectedTeams.get(k);
+            const sideLabel = team.side === 'yours' ? 'Yours' : 'Opp';
+            return `${team.team_name} [${sideLabel}]`;
+        });
     } else {
         const hasYourPlayer = [...h2hSelectedPlayers.keys()].some(k => k.split('||')[2] === 'yours');
         const hasOppPlayer = [...h2hSelectedPlayers.keys()].some(k => k.split('||')[2] === 'opp');
@@ -813,9 +827,128 @@ function addH2HGraph() {
             alert('Head-to-head player graphs need at least one Your Side player and one Opponent Side player.');
             return;
         }
+
+        selectionKeys = [...h2hSelectedPlayers.keys()];
+        selectionLabels = selectionKeys.map(k => {
+            const [name, team, side] = k.split('||');
+            const sideLabel = side === 'yours' ? 'Yours' : 'Opp';
+            return `${name} (${team}) [${sideLabel}]`;
+        });
     }
 
-    alert('Head-to-head graph data wiring comes in the next deliverable.');
+    const params = new URLSearchParams({ type, stat, limit });
+    selectionKeys.forEach(k => params.append('selections', k));
+
+    const res = await fetch(`/api/h2h_graph_data?${params}`);
+    const data = await res.json();
+
+    if (!res.ok) {
+        alert(data.error || 'Could not load head-to-head graph data.');
+        return;
+    }
+
+    const hasData = Object.values(data).some(gameList => gameList.length > 0);
+    if (!hasData) {
+        alert('No head-to-head matchup data found for those selections.');
+        return;
+    }
+
+    renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel);
+}
+
+function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
+    const graphId = `h2h_graph_${graphCount++}`;
+
+    const allGames = [];
+    const seenGames = new Set();
+
+    Object.values(data).forEach(gameList => {
+        gameList.forEach(g => {
+            if (!seenGames.has(g.game_id)) {
+                seenGames.add(g.game_id);
+                allGames.push({
+                    game_id: g.game_id,
+                    date: g.date
+                });
+            }
+        });
+    });
+
+    allGames.sort((a, b) => {
+        if (a.date === b.date) {
+            return a.game_id - b.game_id;
+        }
+        return a.date.localeCompare(b.date);
+    });
+
+    const labels = allGames.map(g => g.date);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = graphId;
+    card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h2>H2H ${statLabel} — ${selectionLabels.join(' vs ')} (${limitLabel})</h2>
+            <button onclick="document.getElementById('${graphId}').remove()"
+                style="background:none; border:1px solid #333; color:#666; padding:0.3rem 0.8rem; border-radius:4px; cursor:pointer; font-size:0.8rem;">
+                Remove
+            </button>
+        </div>
+        <canvas id="canvas_${graphId}" height="80"></canvas>
+    `;
+    document.getElementById('h2hGraphsContainer').appendChild(card);
+
+    const datasets = selectionKeys.map((key, i) => {
+        const gameData = data[key] || [];
+        const gameMap = {};
+        gameData.forEach(g => gameMap[g.game_id] = g);
+
+        return {
+            label: selectionLabels[i],
+            data: allGames.map(game => gameMap[game.game_id] ? gameMap[game.game_id].value : null),
+            borderColor: lineColors[i % lineColors.length],
+            backgroundColor: lineColors[i % lineColors.length] + '20',
+            borderWidth: 2,
+            pointRadius: 4,
+            pointBackgroundColor: allGames.map(game => {
+                const g = gameMap[game.game_id];
+                if (!g) return '#444';
+                return g.win_loss === 'W' ? '#4caf50' : '#98002E';
+            }),
+            tension: 0.3,
+            fill: false,
+            spanGaps: false
+        };
+    });
+
+    new Chart(document.getElementById(`canvas_${graphId}`), {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { labels: { color: '#888' } },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: (ctx) => {
+                            const key = selectionKeys[ctx.datasetIndex];
+                            const gameData = data[key] || [];
+                            const game = gameData.find(g => g.game_id === allGames[ctx.dataIndex].game_id);
+                            if (game) {
+                                const ha = game.home_away === 'H' ? 'Home' : 'Away';
+                                return `${game.win_loss === 'W' ? 'WIN' : 'LOSS'} vs ${game.opp_team} (${ha})`;
+                            }
+                            return '';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { ticks: { color: '#666', maxTicksLimit: 15 }, grid: { color: '#1a1a1a' } },
+                y: { ticks: { color: '#666' }, grid: { color: '#1a1a1a' }, min: 0 }
+            }
+        }
+    });
 }
 
 // Close dropdowns on outside click
