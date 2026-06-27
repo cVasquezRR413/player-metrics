@@ -733,6 +733,178 @@ def player_graph_data():
     conn.close()
     return results
 
+# ─── API: HEAD-TO-HEAD GRAPH DATA ────────────────────
+
+@app.route("/api/h2h_graph_data")
+def h2h_graph_data():
+    conn = get_connection()
+
+    chart_type = request.args.get('type', 'team')
+    stat = request.args.get('stat', 'points')
+    limit = request.args.get('limit', 'all')
+    selections = request.args.getlist('selections')
+
+    allowed_stats = {
+        'points', 'assists', 'rebounds', 'steals', 'blocks',
+        'turnovers', 'fg_made', 'three_made', 'plus_minus', 'dunks'
+    }
+
+    if stat not in allowed_stats:
+        conn.close()
+        return {'error': 'Invalid stat selected.'}, 400
+
+    results = {}
+
+    if chart_type == 'team':
+        your_team_selections = []
+        opp_team_selections = []
+
+        for selection in selections:
+            parts = selection.split('||')
+            if len(parts) < 2:
+                continue
+
+            team_name = parts[0]
+            side = parts[1]
+
+            if side == 'yours':
+                your_team_selections.append(team_name)
+            elif side == 'opp':
+                opp_team_selections.append(team_name)
+
+        for selection in selections:
+            parts = selection.split('||')
+            if len(parts) < 2:
+                results[selection] = []
+                continue
+
+            team_name = parts[0]
+            side = parts[1]
+            is_your_team = 1 if side == 'yours' else 0
+
+            opposite_teams = opp_team_selections if side == 'yours' else your_team_selections
+
+            if not opposite_teams:
+                results[selection] = []
+                continue
+
+            placeholders = ','.join(['?'] * len(opposite_teams))
+
+            query = f"""
+                SELECT g.game_id, g.date, g.win_loss, g.home_away,
+                       t_other.team_name as opp_team,
+                       SUM(ps.{stat}) as value
+                FROM games g
+                JOIN teams t ON g.game_id = t.game_id
+                    AND t.is_your_team = ?
+                    AND t.team_name = ?
+                JOIN teams t_other ON g.game_id = t_other.game_id
+                    AND t_other.is_your_team != t.is_your_team
+                    AND t_other.team_name IN ({placeholders})
+                JOIN player_stats ps ON ps.team_id = t.team_id
+                    AND ps.game_id = g.game_id
+                GROUP BY g.game_id
+                ORDER BY g.date ASC, g.game_id ASC
+            """
+
+            df = pd.read_sql_query(
+                query,
+                conn,
+                params=[is_your_team, team_name] + opposite_teams
+            )
+
+            if limit != 'all':
+                df = df.tail(int(limit))
+
+            results[selection] = df.to_dict('records')
+
+    else:
+        your_player_selections = []
+        opp_player_selections = []
+
+        for selection in selections:
+            parts = selection.split('||')
+            if len(parts) < 3:
+                continue
+
+            player_name = parts[0]
+            team_name = parts[1]
+            side = parts[2]
+
+            if side == 'yours':
+                your_player_selections.append((player_name, team_name))
+            elif side == 'opp':
+                opp_player_selections.append((player_name, team_name))
+
+        for selection in selections:
+            parts = selection.split('||')
+            if len(parts) < 3:
+                results[selection] = []
+                continue
+
+            player_name = parts[0]
+            team_name = parts[1]
+            side = parts[2]
+            is_your_team = 1 if side == 'yours' else 0
+
+            opposite_players = opp_player_selections if side == 'yours' else your_player_selections
+
+            if not opposite_players:
+                results[selection] = []
+                continue
+
+            player_conditions = []
+            h2h_params = []
+
+            for opp_player_name, opp_team_name in opposite_players:
+                player_conditions.append("""
+                    (ps_opp.player_name = ? AND t_opp.team_name = ?)
+                """)
+                h2h_params.extend([opp_player_name, opp_team_name])
+
+            h2h_filter = f"""
+                AND EXISTS (
+                    SELECT 1
+                    FROM player_stats ps_opp
+                    JOIN teams t_opp ON ps_opp.team_id = t_opp.team_id
+                    WHERE ps_opp.game_id = g.game_id
+                    AND t_opp.is_your_team != t.is_your_team
+                    AND (
+                        {' OR '.join(player_conditions)}
+                    )
+                )
+            """
+
+            query = f"""
+                SELECT g.game_id, g.date, g.win_loss, g.home_away,
+                       t_other.team_name as opp_team,
+                       ps.{stat} as value
+                FROM player_stats ps
+                JOIN teams t ON ps.team_id = t.team_id
+                JOIN games g ON ps.game_id = g.game_id
+                JOIN teams t_other ON g.game_id = t_other.game_id
+                    AND t_other.is_your_team != t.is_your_team
+                WHERE t.is_your_team = ?
+                AND ps.player_name = ?
+                AND t.team_name = ?
+                {h2h_filter}
+                ORDER BY g.date ASC, g.game_id ASC
+            """
+
+            df = pd.read_sql_query(
+                query,
+                conn,
+                params=[is_your_team, player_name, team_name] + h2h_params
+            )
+
+            if limit != 'all':
+                df = df.tail(int(limit))
+
+            results[selection] = df.to_dict('records')
+
+    conn.close()
+    return results
+
 # ─── API: MATCHUP TABLES ─────────────────────────────
 
 @app.route("/api/matchup_data")
