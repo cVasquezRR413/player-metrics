@@ -275,30 +275,48 @@
     <div id="h2hGraphsContainer"></div>
 
     <!-- ═══════════════════════════════════════════════════
-         TEAM MATCHUP
+        TEAM MATCHUP
     ════════════════════════════════════════════════════ -->
     <div class="card">
         <h2>Team Matchup</h2>
-        <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin-bottom:1rem;">
+
+        <div style="display:grid; grid-template-columns:2fr 2fr 1fr; gap:1rem; margin-bottom:1rem;">
             <div>
                 <label class="field-label">Your Team</label>
-                <select id="teamMatchupYourTeam" style="width:100%;">
-                    <option value="all">All Teams</option>
-                    {% for t in teams %}
-                    <option value="{{ t }}">{{ t }}</option>
-                    {% endfor %}
-                </select>
+                <div style="position:relative;">
+                    <input type="text" id="teamMatchupYourTeamInput" value="All Teams" placeholder="Search your teams..."
+                        oninput="filterTeamMatchupDropdown('yours')" onfocus="filterTeamMatchupDropdown('yours')"
+                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                    <div id="teamMatchupYourTeamDropdown"
+                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                    </div>
+                </div>
             </div>
+
             <div>
                 <label class="field-label">Opponent Team</label>
-                <select id="teamMatchupOppTeam" style="width:100%;">
-                    <option value="">Select opponent...</option>
-                    {% for t in opp_teams %}
-                    <option value="{{ t }}">{{ t }}</option>
-                    {% endfor %}
+                <div style="position:relative;">
+                    <input type="text" id="teamMatchupOppTeamInput" placeholder="Search opponent teams..."
+                        oninput="filterTeamMatchupDropdown('opp')" onfocus="filterTeamMatchupDropdown('opp')"
+                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                    <div id="teamMatchupOppTeamDropdown"
+                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label class="field-label">Last N Games</label>
+                <select id="teamMatchupLimit" style="width:100%;">
+                    <option value="all">All Games</option>
+                    <option value="5">Last 5</option>
+                    <option value="10" selected>Last 10</option>
+                    <option value="20">Last 20</option>
+                    <option value="50">Last 50</option>
                 </select>
             </div>
         </div>
+
         <button onclick="loadTeamMatchup()"
             style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
             Generate
@@ -443,6 +461,24 @@ const matchupPlayerOptions = yourPlayers.map(p => ({
     team_name: p.team_name,
     key: `${p.player_name}||${p.team_name}`
 }));
+
+const teamMatchupYourTeamOptions = [
+    { label: 'All Teams', team_name: 'all', key: 'all' },
+    ...teams.map(t => ({
+        label: t,
+        team_name: t,
+        key: t
+    }))
+];
+
+const teamMatchupOppTeamOptions = oppTeams.map(t => ({
+    label: t,
+    team_name: t,
+    key: t
+}));
+
+let teamMatchupYourTeamSelection = { label: 'All Teams', team_name: 'all', key: 'all' };
+let teamMatchupOppTeamSelection = null;
 
 const lineColors = [
     '#98002E', '#2196F3', '#4caf50', '#FF9800', '#9C27B0',
@@ -950,6 +986,8 @@ document.addEventListener('click', (e) => {
         'oppPlayerDropdown',
         'playerDropdown',
         'matchupPlayerDropdown',
+        'teamMatchupYourTeamDropdown',
+        'teamMatchupOppTeamDropdown',
         'h2hYourTeamDropdown',
         'h2hOppTeamDropdown',
         'h2hYourPlayerDropdown',
@@ -968,6 +1006,8 @@ document.getElementById('h2hOppTeamInput')?.addEventListener('click', e => e.sto
 document.getElementById('h2hYourPlayerInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('h2hOppPlayerInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('matchupPlayerInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('teamMatchupYourTeamInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('teamMatchupOppTeamInput')?.addEventListener('click', e => e.stopPropagation());
 
 async function addGraph() {
     const type = document.getElementById('chartType').value;
@@ -1111,6 +1151,49 @@ function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel
 
 // ─── TEAM MATCHUP TABLE ──────────────────────────────
 
+// ─── TEAM MATCHUP AUTOCOMPLETE ───────────────────────
+
+function filterTeamMatchupDropdown(side) {
+    const inputId = side === 'yours' ? 'teamMatchupYourTeamInput' : 'teamMatchupOppTeamInput';
+    const dropdownId = side === 'yours' ? 'teamMatchupYourTeamDropdown' : 'teamMatchupOppTeamDropdown';
+    const options = side === 'yours' ? teamMatchupYourTeamOptions : teamMatchupOppTeamOptions;
+
+    const input = document.getElementById(inputId).value.toLowerCase();
+    const dropdown = document.getElementById(dropdownId);
+    dropdown.innerHTML = '';
+
+    const filtered = options.filter(t => t.label.toLowerCase().includes(input));
+
+    if (filtered.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+    }
+
+    filtered.slice(0, 10).forEach(t => {
+        const item = document.createElement('div');
+        item.textContent = t.label;
+        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
+        item.onmouseenter = () => item.style.background = '#2a2a2a';
+        item.onmouseleave = () => item.style.background = 'transparent';
+        item.onclick = () => selectTeamMatchupTeam(side, t);
+        dropdown.appendChild(item);
+    });
+
+    dropdown.style.display = 'block';
+}
+
+function selectTeamMatchupTeam(side, team) {
+    if (side === 'yours') {
+        teamMatchupYourTeamSelection = team;
+        document.getElementById('teamMatchupYourTeamInput').value = team.label;
+        document.getElementById('teamMatchupYourTeamDropdown').style.display = 'none';
+    } else {
+        teamMatchupOppTeamSelection = team;
+        document.getElementById('teamMatchupOppTeamInput').value = team.label;
+        document.getElementById('teamMatchupOppTeamDropdown').style.display = 'none';
+    }
+}
+
 const statLabels = {
     pts: 'PTS', ast: 'AST', reb: 'REB', stl: 'STL',
     blk: 'BLK', to_: 'TO', fgm: 'FGM', fga: 'FGA',
@@ -1149,13 +1232,27 @@ function buildComparisonTable(overall, vs_opp, label) {
 }
 
 async function loadTeamMatchup() {
-    const yourTeam = document.getElementById('teamMatchupYourTeam').value;
-    const oppTeam = document.getElementById('teamMatchupOppTeam').value;
-    if (!oppTeam) { alert('Please select an opponent team.'); return; }
-    const params = new URLSearchParams({ type: 'team', your_team: yourTeam, opp_team: oppTeam });
+    const yourTeam = teamMatchupYourTeamSelection ? teamMatchupYourTeamSelection.team_name : 'all';
+    const oppTeam = teamMatchupOppTeamSelection ? teamMatchupOppTeamSelection.team_name : '';
+    const limit = document.getElementById('teamMatchupLimit').value;
+
+    if (!oppTeam) {
+        alert('Please select an opponent team.');
+        return;
+    }
+
+    const params = new URLSearchParams({
+        type: 'team',
+        your_team: yourTeam,
+        opp_team: oppTeam,
+        limit
+    });
+
     const res = await fetch(`/api/matchup_data?${params}`);
     const data = await res.json();
+
     const label = `${yourTeam === 'all' ? 'All Teams' : yourTeam} vs ${oppTeam} (${data.games_vs} games of ${data.total_games} total)`;
+
     document.getElementById('teamMatchupResults').innerHTML = buildComparisonTable(data.overall, data.vs_opp, label);
 }
 
