@@ -93,11 +93,6 @@
 
             </div>
 
-            <label style="display:flex; align-items:center; gap:0.5rem; color:#aaa; font-size:0.85rem; margin-bottom:1rem;">
-                <input type="checkbox" id="teamHeadToHead" checked>
-                Head-to-head only
-            </label>
-
             <!-- TEAM TAGS -->
             <div id="teamTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
 
@@ -135,11 +130,6 @@
                 </div>
 
             </div>
-
-            <label style="display:flex; align-items:center; gap:0.5rem; color:#aaa; font-size:0.85rem; margin-bottom:1rem;">
-                <input type="checkbox" id="playerHeadToHead" checked>
-                Head-to-head only
-            </label>
 
             <!-- PLAYER TAGS -->
             <div id="playerTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
@@ -986,47 +976,32 @@ async function addGraph() {
     const statLabel = document.getElementById('chartStat').selectedOptions[0].text;
     const limitLabel = document.getElementById('chartLimit').selectedOptions[0].text;
 
-    let data, selectionKeys, selectionLabels, apiUrl;
+    let data, selectionKeys, selectionLabels;
 
     if (type === 'team') {
         if (selectedTeams.size === 0) { alert('Select at least one team.'); return; }
 
-        const headToHead = document.getElementById('teamHeadToHead').checked;
-        const hasYourTeam = [...selectedTeams.values()].some(t => t.side === 'yours');
-        const hasOppTeam = [...selectedTeams.values()].some(t => t.side === 'opp');
-
-        if (headToHead && (!hasYourTeam || !hasOppTeam)) {
-            alert('Head-to-head graphs need at least one Your Team and one Opponent Team.');
-            return;
-        }
-
-        const params = new URLSearchParams({ type: 'team', stat, limit, head_to_head: headToHead ? '1' : '0' });
+        const params = new URLSearchParams({ type: 'team', stat, limit, head_to_head: '0' });
         selectedTeams.forEach((v, k) => params.append('selections', k));
+
         const res = await fetch(`/api/chart_data?${params}`);
         data = await res.json();
+
         selectionKeys = [...selectedTeams.keys()];
         selectionLabels = selectionKeys.map(k => {
             const team = selectedTeams.get(k);
             const sideLabel = team.side === 'yours' ? 'Yours' : 'Opp';
             return `${team.team_name} [${sideLabel}]`;
         });
-        apiUrl = 'team';
     } else {
         if (graphPlayers.size === 0) { alert('Add at least one player.'); return; }
 
-        const headToHead = document.getElementById('playerHeadToHead').checked;
-        const hasYourPlayer = [...graphPlayers.keys()].some(k => k.split('||')[2] === 'yours');
-        const hasOppPlayer = [...graphPlayers.keys()].some(k => k.split('||')[2] === 'opp');
-
-        if (headToHead && (!hasYourPlayer || !hasOppPlayer)) {
-            alert('Head-to-head player graphs need at least one Your Player and one Opponent Player.');
-            return;
-        }
-
-        const params = new URLSearchParams({ stat, limit, head_to_head: headToHead ? '1' : '0' });
+        const params = new URLSearchParams({ stat, limit, head_to_head: '0' });
         graphPlayers.forEach((v, k) => params.append('selections', k));
+
         const res = await fetch(`/api/player_graph_data?${params}`);
         data = await res.json();
+
         selectionKeys = [...graphPlayers.keys()];
         selectionLabels = selectionKeys.map(k => {
             const [name, team, side, ha] = k.split('||');
