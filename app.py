@@ -914,6 +914,7 @@ def matchup_data():
     matchup_type = request.args.get('type', 'team')
     opp_team = request.args.get('opp_team', '')
     your_team = request.args.get('your_team', 'all')
+    limit = request.args.get('limit', 'all')
     selections = request.args.getlist('selections')
 
     results = {}
@@ -951,6 +952,9 @@ def matchup_data():
             {team_filter}
             GROUP BY g.game_id
         """.format(team_filter=f"AND t.team_name = '{your_team}'" if your_team != 'all' else ''), conn, params=(opp_team,))
+
+        if limit != 'all':
+            vs_opp = vs_opp.sort_values(['game_id']).tail(int(limit))
 
         def calc_avgs(df):
             if df.empty:

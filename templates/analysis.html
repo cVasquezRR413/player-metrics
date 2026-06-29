@@ -284,7 +284,7 @@
             <div>
                 <label class="field-label">Your Team</label>
                 <div style="position:relative;">
-                    <input type="text" id="teamMatchupYourTeamInput" value="All Teams" placeholder="Search your teams..."
+                    <input type="text" id="teamMatchupYourTeamInput" placeholder="Search your teams..." autocomplete="off"
                         oninput="filterTeamMatchupDropdown('yours')" onfocus="filterTeamMatchupDropdown('yours')"
                         style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
                     <div id="teamMatchupYourTeamDropdown"
@@ -296,7 +296,7 @@
             <div>
                 <label class="field-label">Opponent Team</label>
                 <div style="position:relative;">
-                    <input type="text" id="teamMatchupOppTeamInput" placeholder="Search opponent teams..."
+                    <input type="text" id="teamMatchupOppTeamInput" placeholder="Search opponent teams..." autocomplete="off"
                         oninput="filterTeamMatchupDropdown('opp')" onfocus="filterTeamMatchupDropdown('opp')"
                         style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
                     <div id="teamMatchupOppTeamDropdown"
@@ -1304,8 +1304,22 @@ async function loadPlayerMatchup() {
 }
 
 // Init
+function resetTeamMatchupInputs() {
+    const yourInput = document.getElementById('teamMatchupYourTeamInput');
+    const oppInput = document.getElementById('teamMatchupOppTeamInput');
+
+    if (yourInput) yourInput.value = '';
+    if (oppInput) oppInput.value = '';
+
+    teamMatchupYourTeamSelection = { label: 'All Teams', team_name: 'all', key: 'all' };
+    teamMatchupOppTeamSelection = null;
+}
+
 updateSelections();
 updateH2HSelections();
+resetTeamMatchupInputs();
+
+window.addEventListener('pageshow', resetTeamMatchupInputs);
 </script>
 
 {% endblock %}
