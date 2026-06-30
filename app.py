@@ -992,11 +992,12 @@ def matchup_data():
 
             vs_opp = pd.read_sql_query("""
                 SELECT ps.points as pts, ps.assists as ast,
-                       ps.rebounds as reb, ps.steals as stl,
-                       ps.blocks as blk, ps.turnovers as to_,
-                       ps.fg_made as fgm, ps.fg_attempted as fga,
-                       ps.three_made as tpm, ps.three_attempted as tpa,
-                       ps.ft_made as ftm, ps.ft_attempted as fta
+                    ps.rebounds as reb, ps.steals as stl,
+                    ps.blocks as blk, ps.turnovers as to_,
+                    ps.fg_made as fgm, ps.fg_attempted as fga,
+                    ps.three_made as tpm, ps.three_attempted as tpa,
+                    ps.ft_made as ftm, ps.ft_attempted as fta,
+                    g.game_id
                 FROM player_stats ps
                 JOIN teams t ON ps.team_id = t.team_id
                 JOIN games g ON ps.game_id = g.game_id
@@ -1005,13 +1006,18 @@ def matchup_data():
                 AND t.team_name = ? AND t2.team_name = ?
             """, conn, params=(player_name, team_name, opp_team))
 
+            if limit != 'all':
+                vs_opp = vs_opp.sort_values(['game_id']).tail(int(limit))
+
             def calc_avgs(df):
                 if df.empty:
                     return {}
                 df['fg_pct'] = (df['fgm'] / df['fga']).round(3)
                 df['three_pct'] = (df['tpm'] / df['tpa']).round(3)
                 df['ft_pct'] = (df['ftm'] / df['fta']).round(3)
-                return df.mean(numeric_only=True).round(2).to_dict()
+
+                avgs = df.mean(numeric_only=True).round(2)
+                return avgs.astype(object).where(pd.notnull(avgs), None).to_dict()
 
             results[selection] = {
                 'player_name': player_name,

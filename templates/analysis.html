@@ -329,7 +329,7 @@
     ════════════════════════════════════════════════════ -->
     <div class="card">
         <h2>Player Matchup</h2>
-        <div style="display:grid; grid-template-columns:2fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:1rem; margin-bottom:1rem;">
             <div>
                 <label class="field-label">Players (Your Team)</label>
                 <div style="position:relative;">
@@ -340,17 +340,23 @@
                         style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
                     </div>
                 </div>
-                <div id="matchupPlayerTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;"></div>
             </div>
             <div>
                 <label class="field-label">Opponent Team</label>
-                <select id="playerMatchupOppTeam" style="width:100%;">
-                    <option value="">Select opponent...</option>
-                    {% for t in opp_teams %}
-                    <option value="{{ t }}">{{ t }}</option>
-                    {% endfor %}
-                </select>
+                <div style="position:relative;">
+                    <input type="text" id="playerMatchupOppTeamInput" placeholder="Search opponent teams..." autocomplete="off"
+                        oninput="filterPlayerMatchupOppTeamDropdown()" onfocus="filterPlayerMatchupOppTeamDropdown()"
+                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                    <div id="playerMatchupOppTeamDropdown"
+                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
+                    </div>
+                </div>
             </div>
+            <div>
+                <label class="field-label">Last N Games</label>
+                <input type="number" id="playerMatchupLimit" min="1" placeholder="All" autocomplete="off"
+                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+            </div>        
         </div>
         <button onclick="loadPlayerMatchup()"
             style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
@@ -370,6 +376,18 @@
         letter-spacing: 0.06em;
         margin-bottom: 0.4rem;
     }
+
+    /* Hide number input arrows/spinners */
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+
     .player-tag {
         color: #fff;
         padding: 0.3rem 0.8rem;
@@ -479,6 +497,8 @@ const teamMatchupOppTeamOptions = oppTeams.map(t => ({
 
 let teamMatchupYourTeamSelection = { label: 'All Teams', team_name: 'all', key: 'all' };
 let teamMatchupOppTeamSelection = null;
+let playerMatchupOppTeamSelection = null;
+let playerMatchupPlayerSelection = null;
 
 const lineColors = [
     '#98002E', '#2196F3', '#4caf50', '#FF9800', '#9C27B0',
@@ -986,6 +1006,7 @@ document.addEventListener('click', (e) => {
         'oppPlayerDropdown',
         'playerDropdown',
         'matchupPlayerDropdown',
+        'playerMatchupOppTeamDropdown',
         'teamMatchupYourTeamDropdown',
         'teamMatchupOppTeamDropdown',
         'h2hYourTeamDropdown',
@@ -1006,6 +1027,7 @@ document.getElementById('h2hOppTeamInput')?.addEventListener('click', e => e.sto
 document.getElementById('h2hYourPlayerInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('h2hOppPlayerInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('matchupPlayerInput')?.addEventListener('click', e => e.stopPropagation());
+document.getElementById('playerMatchupOppTeamInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('teamMatchupYourTeamInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('teamMatchupOppTeamInput')?.addEventListener('click', e => e.stopPropagation());
 
@@ -1262,37 +1284,74 @@ function filterMatchupDropdown() {
     const input = document.getElementById('matchupPlayerInput').value.toLowerCase();
     const dropdown = document.getElementById('matchupPlayerDropdown');
     dropdown.innerHTML = '';
+
     const filtered = matchupPlayerOptions.filter(p =>
-        p.label.toLowerCase().includes(input) && !matchupPlayers.has(p.key)
+        p.label.toLowerCase().includes(input)
     );
+
     if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
+
     filtered.slice(0, 10).forEach(p => {
         const item = document.createElement('div');
         item.textContent = p.label;
         item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
         item.onmouseenter = () => item.style.background = '#2a2a2a';
         item.onmouseleave = () => item.style.background = 'transparent';
-        item.onclick = () => {
-            matchupPlayers.set(p.key, p.label);
-            document.getElementById('matchupPlayerInput').value = '';
-            dropdown.style.display = 'none';
-            const tag = document.createElement('span');
-            tag.style.cssText = 'background:#98002E; color:#fff; padding:0.3rem 0.8rem; border-radius:4px; font-size:0.8rem; display:inline-flex; align-items:center; gap:0.5rem;';
-            tag.dataset.key = p.key;
-            tag.innerHTML = `${p.label} <span style="cursor:pointer; font-weight:bold;" onclick="matchupPlayers.delete('${p.key}'); this.parentElement.remove();">×</span>`;
-            document.getElementById('matchupPlayerTags').appendChild(tag);
-        };
+        item.onclick = () => selectMatchupPlayer(p);
         dropdown.appendChild(item);
     });
+
     dropdown.style.display = 'block';
 }
 
+function selectMatchupPlayer(player) {
+    playerMatchupPlayerSelection = player;
+    document.getElementById('matchupPlayerInput').value = player.label;
+    document.getElementById('matchupPlayerDropdown').style.display = 'none';
+}
+
+function filterPlayerMatchupOppTeamDropdown() {
+    const input = document.getElementById('playerMatchupOppTeamInput').value.toLowerCase();
+    const dropdown = document.getElementById('playerMatchupOppTeamDropdown');
+    dropdown.innerHTML = '';
+
+    const filtered = oppTeams.filter(t => t.toLowerCase().includes(input));
+
+    if (filtered.length === 0) {
+        dropdown.style.display = 'none';
+        return;
+    }
+
+    filtered.slice(0, 10).forEach(team => {
+        const item = document.createElement('div');
+        item.textContent = team;
+        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
+        item.onmouseenter = () => item.style.background = '#2a2a2a';
+        item.onmouseleave = () => item.style.background = 'transparent';
+        item.onclick = () => selectPlayerMatchupOppTeam(team);
+        dropdown.appendChild(item);
+    });
+
+    dropdown.style.display = 'block';
+}
+
+function selectPlayerMatchupOppTeam(team) {
+    playerMatchupOppTeamSelection = team;
+    document.getElementById('playerMatchupOppTeamInput').value = team;
+    document.getElementById('playerMatchupOppTeamDropdown').style.display = 'none';
+}
+
 async function loadPlayerMatchup() {
-    const oppTeam = document.getElementById('playerMatchupOppTeam').value;
+    const oppTeam = playerMatchupOppTeamSelection || '';
+    const selectedPlayer = playerMatchupPlayerSelection;
+
+    if (!selectedPlayer) { alert('Please select a player.'); return; }
     if (!oppTeam) { alert('Please select an opponent team.'); return; }
-    if (matchupPlayers.size === 0) { alert('Please add at least one player.'); return; }
-    const params = new URLSearchParams({ type: 'player', opp_team: oppTeam });
-    matchupPlayers.forEach((label, key) => params.append('selections', key));
+    
+    const limit = document.getElementById('playerMatchupLimit').value || 'all';
+    const params = new URLSearchParams({ type: 'player', opp_team: oppTeam, limit });
+    params.append('selections', selectedPlayer.key);
+
     const res = await fetch(`/api/matchup_data?${params}`);
     const data = await res.json();
     const container = document.getElementById('playerMatchupResults');
@@ -1307,12 +1366,20 @@ async function loadPlayerMatchup() {
 function resetTeamMatchupInputs() {
     const yourInput = document.getElementById('teamMatchupYourTeamInput');
     const oppInput = document.getElementById('teamMatchupOppTeamInput');
+    const playerInput = document.getElementById('matchupPlayerInput');
+    const playerOppInput = document.getElementById('playerMatchupOppTeamInput');
+    const playerLimitInput = document.getElementById('playerMatchupLimit');
 
     if (yourInput) yourInput.value = '';
     if (oppInput) oppInput.value = '';
+    if (playerInput) playerInput.value = '';
+    if (playerOppInput) playerOppInput.value = '';
+    if (playerLimitInput) playerLimitInput.value = '';
 
     teamMatchupYourTeamSelection = { label: 'All Teams', team_name: 'all', key: 'all' };
     teamMatchupOppTeamSelection = null;
+    playerMatchupPlayerSelection = null;
+    playerMatchupOppTeamSelection = null;
 }
 
 updateSelections();
