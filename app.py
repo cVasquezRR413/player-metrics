@@ -63,9 +63,9 @@ def box_score():
     """, conn)
 
     game_info = pd.read_sql_query("""
-        SELECT g.game_id, g.date, g.win_loss,
-               t1.team_name as your_team, t1.score as your_score,
-               t2.team_name as opp_team, t2.score as opp_score
+        SELECT g.game_id, g.date, g.win_loss, g.home_away,
+            t1.team_name as your_team, t1.score as your_score,
+            t2.team_name as opp_team, t2.score as opp_score
         FROM games g
         JOIN teams t1 ON g.game_id = t1.game_id AND t1.is_your_team = 1
         JOIN teams t2 ON g.game_id = t2.game_id AND t2.is_your_team = 0

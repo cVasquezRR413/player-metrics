@@ -19,7 +19,7 @@
                 {{ game_info.your_team }} vs {{ game_info.opp_team }}
             </div>
             <div style="color: #666; font-size: 0.85rem; margin-top: 0.25rem;">
-                {{ game_info.date }} · {{ 'Home' if game_info.home_away == 'H' else 'Away' }}
+                {{ game_info.date }}
             </div>
         </div>
         <div style="text-align: right;">
@@ -34,7 +34,12 @@
 </div>
 
 <div class="card">
-    <h2>{{ game_info.your_team }}</h2>
+    <h2>
+        {{ game_info.your_team }}
+        <span style="color: #888; font-size: 0.75rem; margin-left: 0.5rem;">
+            {{ 'HOME' if game_info.home_away == 'H' else 'AWAY' }}
+        </span>
+    </h2>
     <table>
         <thead>
             <tr>
@@ -74,7 +79,12 @@
 </div>
 
 <div class="card">
-    <h2>{{ game_info.opp_team }}</h2>
+    <h2>
+        {{ game_info.opp_team }}
+        <span style="color: #888; font-size: 0.75rem; margin-left: 0.5rem;">
+            {{ 'AWAY' if game_info.home_away == 'H' else 'HOME' }}
+        </span>
+    </h2>
     <table>
         <thead>
             <tr>
