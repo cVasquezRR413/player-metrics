@@ -51,12 +51,8 @@
             </div>
             <div>
                 <label class="field-label">Last N Games</label>
-                <select id="chartLimit" style="width:100%;">
-                    <option value="all">All Games</option>
-                    <option value="10">Last 10</option>
-                    <option value="20" selected>Last 20</option>
-                    <option value="50">Last 50</option>
-                </select>
+                <input type="number" id="chartLimit" min="1" placeholder="All" autocomplete="off"
+                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
             </div>
         </div>
 
@@ -182,13 +178,8 @@
             </div>
             <div>
                 <label class="field-label">Last N Matchups</label>
-                <select id="h2hChartLimit" style="width:100%;">
-                    <option value="all">All Matchups</option>
-                    <option value="5">Last 5</option>
-                    <option value="10" selected>Last 10</option>
-                    <option value="20">Last 20</option>
-                    <option value="50">Last 50</option>
-                </select>
+                <input type="number" id="h2hChartLimit" min="1" placeholder="All" autocomplete="off"
+                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
             </div>
         </div>
 
@@ -307,13 +298,8 @@
 
             <div>
                 <label class="field-label">Last N Games</label>
-                <select id="teamMatchupLimit" style="width:100%;">
-                    <option value="all">All Games</option>
-                    <option value="5">Last 5</option>
-                    <option value="10" selected>Last 10</option>
-                    <option value="20">Last 20</option>
-                    <option value="50">Last 50</option>
-                </select>
+                <input type="number" id="teamMatchupLimit" min="1" placeholder="All" autocomplete="off"
+                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
             </div>
         </div>
 
@@ -843,9 +829,9 @@ function removeH2HPlayerTag(key) {
 async function addH2HGraph() {
     const type = document.getElementById('h2hChartType').value;
     const stat = document.getElementById('h2hChartStat').value;
-    const limit = document.getElementById('h2hChartLimit').value;
+    const limit = document.getElementById('h2hChartLimit').value || 'all';
     const statLabel = document.getElementById('h2hChartStat').selectedOptions[0].text;
-    const limitLabel = document.getElementById('h2hChartLimit').selectedOptions[0].text;
+    const limitLabel = limit === 'all' ? 'All Matchups' : `Last ${limit}`;
 
     let selectionKeys = [];
     let selectionLabels = [];
@@ -1034,9 +1020,9 @@ document.getElementById('teamMatchupOppTeamInput')?.addEventListener('click', e 
 async function addGraph() {
     const type = document.getElementById('chartType').value;
     const stat = document.getElementById('chartStat').value;
-    const limit = document.getElementById('chartLimit').value;
+    const limit = document.getElementById('chartLimit').value || 'all';
     const statLabel = document.getElementById('chartStat').selectedOptions[0].text;
-    const limitLabel = document.getElementById('chartLimit').selectedOptions[0].text;
+    const limitLabel = limit === 'all' ? 'All Games' : `Last ${limit}`;
 
     let data, selectionKeys, selectionLabels;
 
@@ -1256,7 +1242,7 @@ function buildComparisonTable(overall, vs_opp, label) {
 async function loadTeamMatchup() {
     const yourTeam = teamMatchupYourTeamSelection ? teamMatchupYourTeamSelection.team_name : 'all';
     const oppTeam = teamMatchupOppTeamSelection ? teamMatchupOppTeamSelection.team_name : '';
-    const limit = document.getElementById('teamMatchupLimit').value;
+    const limit = document.getElementById('teamMatchupLimit').value || 'all';
 
     if (!oppTeam) {
         alert('Please select an opponent team.');
