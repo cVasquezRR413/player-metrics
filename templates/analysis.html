@@ -139,17 +139,17 @@
     <div class="card">
         <h2>Head-to-Head Graph Builder</h2>
 
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-bottom:1rem;">
+        <div class="form-grid-3">
             <div>
                 <label class="field-label">Type</label>
-                <select id="h2hChartType" onchange="updateH2HSelections()" style="width:100%;">
+                <select id="h2hChartType" class="form-control" onchange="updateH2HSelections()">
                     <option value="team">Team</option>
                     <option value="player">Player</option>
                 </select>
             </div>
             <div>
                 <label class="field-label">Stat</label>
-                <select id="h2hChartStat" style="width:100%;">
+                <select id="h2hChartStat" class="form-control">
                     <option value="points">Points</option>
                     <option value="assists">Assists</option>
                     <option value="rebounds">Rebounds</option>
@@ -164,87 +164,73 @@
             </div>
             <div>
                 <label class="field-label">Last N Matchups</label>
-                <input type="number" id="h2hChartLimit" min="1" placeholder="All" autocomplete="off"
-                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                <input type="number" id="h2hChartLimit" class="form-control" min="1" placeholder="All" autocomplete="off">
             </div>
         </div>
 
         <!-- H2H TEAM BUILDER -->
         <div id="h2hTeamBuilder">
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+            <div class="form-grid-2">
 
                 <!-- H2H YOUR TEAMS -->
                 <div>
-                    <label class="field-label" style="color:#98002E;">Your Side</label>
-                    <div style="position:relative;">
-                        <input type="text" id="h2hYourTeamInput" placeholder="Search your teams..."
-                            oninput="filterH2HTeamDropdown('yours')" onfocus="filterH2HTeamDropdown('yours')"
-                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                        <div id="h2hYourTeamDropdown"
-                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                        </div>
+                    <label class="field-label field-label-user">Your Side</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="h2hYourTeamInput" class="form-control" placeholder="Search your teams..."
+                            oninput="filterH2HTeamDropdown('yours')" onfocus="filterH2HTeamDropdown('yours')">
+                        <div id="h2hYourTeamDropdown" class="autocomplete-dropdown"></div>
                     </div>
                 </div>
 
                 <!-- H2H OPPONENT TEAMS -->
                 <div>
-                    <label class="field-label" style="color:#2196F3;">Opponent Side</label>
-                    <div style="position:relative;">
-                        <input type="text" id="h2hOppTeamInput" placeholder="Search opponent teams..."
-                            oninput="filterH2HTeamDropdown('opp')" onfocus="filterH2HTeamDropdown('opp')"
-                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                        <div id="h2hOppTeamDropdown"
-                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                        </div>
+                    <label class="field-label field-label-opp">Opponent Side</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="h2hOppTeamInput" class="form-control form-control-opp" placeholder="Search opponent teams..."
+                            oninput="filterH2HTeamDropdown('opp')" onfocus="filterH2HTeamDropdown('opp')">
+                        <div id="h2hOppTeamDropdown" class="autocomplete-dropdown"></div>
                     </div>
                 </div>
 
             </div>
 
-            <div id="h2hTeamTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
+            <div id="h2hTeamTags" class="tag-list"></div>
 
         </div>
 
         <!-- H2H PLAYER BUILDER -->
-        <div id="h2hPlayerBuilder" style="display:none;">
+        <div id="h2hPlayerBuilder" class="hidden">
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+            <div class="form-grid-2">
 
                 <!-- H2H YOUR PLAYERS -->
                 <div>
-                    <label class="field-label" style="color:#98002E;">Your Side</label>
-                    <div style="position:relative;">
-                        <input type="text" id="h2hYourPlayerInput" placeholder="Search your roster..."
-                            oninput="filterH2HPlayerDropdown('yours')" onfocus="filterH2HPlayerDropdown('yours')"
-                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                        <div id="h2hYourPlayerDropdown"
-                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                        </div>
+                    <label class="field-label field-label-user">Your Side</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="h2hYourPlayerInput" class="form-control" placeholder="Search your roster..."
+                            oninput="filterH2HPlayerDropdown('yours')" onfocus="filterH2HPlayerDropdown('yours')">
+                        <div id="h2hYourPlayerDropdown" class="autocomplete-dropdown"></div>
                     </div>
                 </div>
 
                 <!-- H2H OPPONENT PLAYERS -->
                 <div>
-                    <label class="field-label" style="color:#2196F3;">Opponent Side</label>
-                    <div style="position:relative;">
-                        <input type="text" id="h2hOppPlayerInput" placeholder="Search opponents..."
-                            oninput="filterH2HPlayerDropdown('opp')" onfocus="filterH2HPlayerDropdown('opp')"
-                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                        <div id="h2hOppPlayerDropdown"
-                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                        </div>
+                    <label class="field-label field-label-opp">Opponent Side</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="h2hOppPlayerInput" class="form-control form-control-opp" placeholder="Search opponents..."
+                            oninput="filterH2HPlayerDropdown('opp')" onfocus="filterH2HPlayerDropdown('opp')">
+                        <div id="h2hOppPlayerDropdown" class="autocomplete-dropdown"></div>
                     </div>
                 </div>
 
             </div>
 
-            <div id="h2hPlayerTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
+            <div id="h2hPlayerTags" class="tag-list"></div>
 
         </div>
 
-        <button onclick="addH2HGraph()"
-            style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+        <button class="primary-action-btn" onclick="addH2HGraph()">
             Add Graph
         </button>
     </div>
