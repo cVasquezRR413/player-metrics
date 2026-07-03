@@ -238,89 +238,77 @@
     <div id="h2hGraphsContainer"></div>
 
     <!-- ═══════════════════════════════════════════════════
-         TEAM MATCHUP
+        TEAM MATCHUP
     ════════════════════════════════════════════════════ -->
     <div class="card">
         <h2>Team Matchup</h2>
 
-        <div style="display:grid; grid-template-columns:2fr 2fr 1fr; gap:1rem; margin-bottom:1rem;">
+        <div class="form-grid-matchup">
             <div>
                 <label class="field-label">Your Team</label>
-                <div style="position:relative;">
-                    <input type="text" id="teamMatchupYourTeamInput" placeholder="Search your teams..." autocomplete="off"
-                        oninput="filterTeamMatchupDropdown('yours')" onfocus="filterTeamMatchupDropdown('yours')"
-                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                    <div id="teamMatchupYourTeamDropdown"
-                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                    </div>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="teamMatchupYourTeamInput" class="form-control" placeholder="Search your teams..." autocomplete="off"
+                        oninput="filterTeamMatchupDropdown('yours')" onfocus="filterTeamMatchupDropdown('yours')">
+                    <div id="teamMatchupYourTeamDropdown" class="autocomplete-dropdown"></div>
                 </div>
             </div>
 
             <div>
                 <label class="field-label">Opponent Team</label>
-                <div style="position:relative;">
-                    <input type="text" id="teamMatchupOppTeamInput" placeholder="Search opponent teams..." autocomplete="off"
-                        oninput="filterTeamMatchupDropdown('opp')" onfocus="filterTeamMatchupDropdown('opp')"
-                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                    <div id="teamMatchupOppTeamDropdown"
-                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                    </div>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="teamMatchupOppTeamInput" class="form-control form-control-opp" placeholder="Search opponent teams..." autocomplete="off"
+                        oninput="filterTeamMatchupDropdown('opp')" onfocus="filterTeamMatchupDropdown('opp')">
+                    <div id="teamMatchupOppTeamDropdown" class="autocomplete-dropdown"></div>
                 </div>
             </div>
 
             <div>
                 <label class="field-label">Last N Games</label>
-                <input type="number" id="teamMatchupLimit" min="1" placeholder="All" autocomplete="off"
-                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                <input type="number" id="teamMatchupLimit" class="form-control" min="1" placeholder="All" autocomplete="off">
             </div>
         </div>
 
-        <button onclick="loadTeamMatchup()"
-            style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+        <button class="primary-action-btn" onclick="loadTeamMatchup()">
             Generate
         </button>
-        <div id="teamMatchupResults" style="margin-top:1.5rem;"></div>
+        <div id="teamMatchupResults" class="results-container"></div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════
-         PLAYER MATCHUP TABLE
+        PLAYER MATCHUP TABLE
     ════════════════════════════════════════════════════ -->
     <div class="card">
         <h2>Player Matchup</h2>
-        <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:1rem; margin-bottom:1rem;">
+
+        <div class="form-grid-player-matchup">
             <div>
                 <label class="field-label">Players (Your Team)</label>
-                <div style="position:relative;">
-                    <input type="text" id="matchupPlayerInput" placeholder="Type a player name..."
-                        oninput="filterMatchupDropdown()" onfocus="filterMatchupDropdown()"
-                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                    <div id="matchupPlayerDropdown"
-                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                    </div>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="matchupPlayerInput" class="form-control" placeholder="Type a player name..."
+                        oninput="filterMatchupDropdown()" onfocus="filterMatchupDropdown()">
+                    <div id="matchupPlayerDropdown" class="autocomplete-dropdown"></div>
                 </div>
             </div>
+
             <div>
                 <label class="field-label">Opponent Team</label>
-                <div style="position:relative;">
-                    <input type="text" id="playerMatchupOppTeamInput" placeholder="Search opponent teams..." autocomplete="off"
-                        oninput="filterPlayerMatchupOppTeamDropdown()" onfocus="filterPlayerMatchupOppTeamDropdown()"
-                        style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                    <div id="playerMatchupOppTeamDropdown"
-                        style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                    </div>
+                <div class="autocomplete-wrapper">
+                    <input type="text" id="playerMatchupOppTeamInput" class="form-control form-control-opp" placeholder="Search opponent teams..." autocomplete="off"
+                        oninput="filterPlayerMatchupOppTeamDropdown()" onfocus="filterPlayerMatchupOppTeamDropdown()">
+                    <div id="playerMatchupOppTeamDropdown" class="autocomplete-dropdown"></div>
                 </div>
             </div>
+
             <div>
                 <label class="field-label">Last N Games</label>
-                <input type="number" id="playerMatchupLimit" min="1" placeholder="All" autocomplete="off"
-                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-            </div>        
+                <input type="number" id="playerMatchupLimit" class="form-control" min="1" placeholder="All" autocomplete="off">
+            </div>
         </div>
-        <button onclick="loadPlayerMatchup()"
-            style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+
+        <button class="primary-action-btn" onclick="loadPlayerMatchup()">
             Generate
         </button>
-        <div id="playerMatchupResults" style="margin-top:1.5rem;"></div>
+        <div id="playerMatchupResults" class="results-container"></div>
     </div>
 
 </div>
@@ -361,6 +349,20 @@
         margin-bottom: 1rem;
     }
 
+    .form-grid-matchup {
+        display: grid;
+        grid-template-columns: 2fr 2fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-grid-player-matchup {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
     .autocomplete-wrapper {
         position: relative;
     }
@@ -371,6 +373,10 @@
         gap: 0.5rem;
         margin-bottom: 1rem;
         min-height: 2rem;
+    }
+
+    .results-container {
+        margin-top: 1.5rem;
     }
 
     .hidden {
