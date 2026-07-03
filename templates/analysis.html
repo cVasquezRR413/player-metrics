@@ -26,17 +26,17 @@
     <div class="card">
         <h2>Build a Graph</h2>
 
-        <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem; margin-bottom:1rem;">
+        <div class="form-grid-3">
             <div>
                 <label class="field-label">Type</label>
-                <select id="chartType" onchange="updateSelections()" style="width:100%;">
+                <select id="chartType" class="form-control" onchange="updateSelections()">
                     <option value="team">Team</option>
                     <option value="player">Player</option>
                 </select>
             </div>
             <div>
                 <label class="field-label">Stat</label>
-                <select id="chartStat" style="width:100%;">
+                <select id="chartStat" class="form-control">
                     <option value="points">Points</option>
                     <option value="assists">Assists</option>
                     <option value="rebounds">Rebounds</option>
@@ -51,89 +51,75 @@
             </div>
             <div>
                 <label class="field-label">Last N Games</label>
-                <input type="number" id="chartLimit" min="1" placeholder="All" autocomplete="off"
-                    style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
+                <input type="number" id="chartLimit" class="form-control" min="1" placeholder="All" autocomplete="off">
             </div>
         </div>
 
         <!-- TEAM BUILDER -->
         <div id="teamBuilder">
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+            <div class="form-grid-2">
 
                 <!-- YOUR TEAMS -->
                 <div>
-                    <label class="field-label" style="color:#98002E;">Your Teams</label>
-                    <div style="position:relative;">
-                        <input type="text" id="yourTeamInput" placeholder="Search your teams..."
-                            oninput="filterTeamDropdown('yours')" onfocus="filterTeamDropdown('yours')"
-                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                        <div id="yourTeamDropdown"
-                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                        </div>
+                    <label class="field-label field-label-user">Your Teams</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="yourTeamInput" class="form-control" placeholder="Search your teams..."
+                            oninput="filterTeamDropdown('yours')" onfocus="filterTeamDropdown('yours')">
+                        <div id="yourTeamDropdown" class="autocomplete-dropdown"></div>
                     </div>
                 </div>
 
                 <!-- OPPONENT TEAMS -->
                 <div>
-                    <label class="field-label" style="color:#2196F3;">Opponent Teams</label>
-                    <div style="position:relative;">
-                        <input type="text" id="oppTeamInput" placeholder="Search opponent teams..."
-                            oninput="filterTeamDropdown('opp')" onfocus="filterTeamDropdown('opp')"
-                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                        <div id="oppTeamDropdown"
-                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                        </div>
+                    <label class="field-label field-label-opp">Opponent Teams</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="oppTeamInput" class="form-control form-control-opp" placeholder="Search opponent teams..."
+                            oninput="filterTeamDropdown('opp')" onfocus="filterTeamDropdown('opp')">
+                        <div id="oppTeamDropdown" class="autocomplete-dropdown"></div>
                     </div>
                 </div>
 
             </div>
 
             <!-- TEAM TAGS -->
-            <div id="teamTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
+            <div id="teamTags" class="tag-list"></div>
 
         </div>
 
         <!-- PLAYER BUILDER -->
-        <div id="playerBuilder" style="display:none;">
+        <div id="playerBuilder" class="hidden">
 
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1rem;">
+            <div class="form-grid-2">
 
                 <!-- YOUR PLAYERS -->
                 <div>
-                    <label class="field-label" style="color:#98002E;">Your Players</label>
-                    <div style="position:relative;">
-                        <input type="text" id="yourPlayerInput" placeholder="Search your roster..."
-                            oninput="filterDropdown('yours')" onfocus="filterDropdown('yours')"
-                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #333; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                        <div id="yourPlayerDropdown"
-                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                        </div>
+                    <label class="field-label field-label-user">Your Players</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="yourPlayerInput" class="form-control" placeholder="Search your roster..."
+                            oninput="filterDropdown('yours')" onfocus="filterDropdown('yours')">
+                        <div id="yourPlayerDropdown" class="autocomplete-dropdown"></div>
                     </div>
                 </div>
 
                 <!-- OPPONENT PLAYERS -->
                 <div>
-                    <label class="field-label" style="color:#2196F3;">Opponent Players</label>
-                    <div style="position:relative;">
-                        <input type="text" id="oppPlayerInput" placeholder="Search opponents..."
-                            oninput="filterDropdown('opp')" onfocus="filterDropdown('opp')"
-                            style="background:#1a1a1a; color:#e0e0e0; border:1px solid #2196F320; padding:0.5rem 1rem; border-radius:4px; width:100%; font-size:0.9rem; box-sizing:border-box;">
-                        <div id="oppPlayerDropdown"
-                            style="display:none; position:absolute; top:100%; left:0; width:100%; background:#1a1a1a; border:1px solid #333; border-radius:4px; max-height:200px; overflow-y:auto; z-index:100;">
-                        </div>
+                    <label class="field-label field-label-opp">Opponent Players</label>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" id="oppPlayerInput" class="form-control form-control-opp" placeholder="Search opponents..."
+                            oninput="filterDropdown('opp')" onfocus="filterDropdown('opp')">
+                        <div id="oppPlayerDropdown" class="autocomplete-dropdown"></div>
                     </div>
                 </div>
 
             </div>
 
             <!-- PLAYER TAGS -->
-            <div id="playerTags" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:1rem; min-height:2rem;"></div>
+            <div id="playerTags" class="tag-list"></div>
 
         </div>
 
-        <button onclick="addGraph()"
-            style="background:#98002E; color:#fff; border:none; padding:0.6rem 1.5rem; border-radius:4px; font-size:0.9rem; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:0.05em;">
+        <button class="primary-action-btn" onclick="addGraph()">
             Add Graph
         </button>
     </div>
@@ -354,6 +340,8 @@
 </div>
 
 <style>
+    /* ─── FORM LABELS ───────────────────────────────── */
+
     .field-label {
         display: block;
         color: #666;
@@ -361,6 +349,67 @@
         text-transform: uppercase;
         letter-spacing: 0.06em;
         margin-bottom: 0.4rem;
+    }
+
+    .field-label-user {
+        color: #98002E;
+    }
+
+    .field-label-opp {
+        color: #2196F3;
+    }
+
+    /* ─── LAYOUT HELPERS ─────────────────────────────── */
+
+    .form-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .form-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .autocomplete-wrapper {
+        position: relative;
+    }
+
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        min-height: 2rem;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    /* ─── FORM CONTROLS ──────────────────────────────── */
+
+    .form-control {
+        background: #1a1a1a;
+        color: #e0e0e0;
+        border: 1px solid #333;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        width: 100%;
+        font-size: 0.9rem;
+        box-sizing: border-box;
+    }
+
+    .form-control-opp {
+        border-color: #2196F320;
+    }
+
+    select.form-control {
+        padding-right: 2rem;
     }
 
     /* Hide number input arrows/spinners */
@@ -374,6 +423,49 @@
         -moz-appearance: textfield;
     }
 
+    /* ─── AUTOCOMPLETE DROPDOWNS ─────────────────────── */
+
+    .autocomplete-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        border-radius: 4px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 100;
+    }
+
+    /* ─── BUTTONS ───────────────────────────────────── */
+
+    .primary-action-btn {
+        background: #98002E;
+        color: #fff;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .remove-graph-btn {
+        background: none;
+        border: 1px solid #333;
+        color: #666;
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+    }
+
+    /* ─── TAGS ──────────────────────────────────────── */
+
     .player-tag {
         color: #fff;
         padding: 0.3rem 0.8rem;
@@ -383,6 +475,7 @@
         align-items: center;
         gap: 0.5rem;
     }
+
     .tag-control {
         background: rgba(255,255,255,0.15);
         border: none;
@@ -392,16 +485,21 @@
         font-size: 0.7rem;
         cursor: pointer;
     }
+
     .tag-control.active {
         background: rgba(255,255,255,0.35);
         font-weight: 700;
     }
+
+    /* ─── ANALYSIS TABS ─────────────────────────────── */
+
     .analysis-tabs {
         display: flex;
         gap: 0.5rem;
         margin-bottom: 1.5rem;
         border-bottom: 1px solid #222;
     }
+
     .analysis-tab {
         background: transparent;
         color: #777;
@@ -414,9 +512,11 @@
         text-transform: uppercase;
         letter-spacing: 0.05em;
     }
+
     .analysis-tab:hover {
         color: #e0e0e0;
     }
+
     .analysis-tab.active {
         color: #fff;
         border-bottom-color: #98002E;
