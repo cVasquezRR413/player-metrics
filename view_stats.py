@@ -21,7 +21,6 @@ def view_box_score(game_id):
         conn.close()
         return
 
-    # Print game header
     row = game.iloc[0]
     print(f"\n{'='*60}")
     print(f"  {row['your_team']} vs {row['opp_team']}")

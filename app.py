@@ -4,12 +4,13 @@ from database import get_connection
 
 app = Flask(__name__)
 
+# Calculate percentages while avoiding divide-by-zero values.
 def safe_pct(numerator, denominator, decimals=3):
     result = numerator / denominator
     result = result.where(denominator != 0)
     return result.round(decimals)
 
-
+# Convert pandas NaN values to None so templates receive clean records.
 def clean_records(df):
     return df.astype(object).where(pd.notnull(df), None).to_dict('records')
 
@@ -87,6 +88,7 @@ def box_score():
 
     conn.close()
 
+    # Add shooting percentages for box score display.
     if not stats.empty:
         stats['fg_pct'] = (stats['fg_made'] / stats['fg_attempted']).round(3)
         stats['three_pct'] = (stats['three_made'] / stats['three_attempted']).round(3)
@@ -123,6 +125,7 @@ def trends():
 
     conn.close()
 
+    # Collapse player rows into one team total per game.
     game_totals = stats.groupby(['game_id', 'win_loss']).sum(numeric_only=True).reset_index()
     game_totals['fg_pct'] = (game_totals['fg_made'] / game_totals['fg_attempted']).round(3)
     game_totals['three_pct'] = (game_totals['three_made'] / game_totals['three_attempted']).round(3)
@@ -160,11 +163,14 @@ def players():
     if selected_team != 'all':
         stats = stats[stats['team_name'] == selected_team]
 
+    # Average each player's stats within each team roster.
     averages = stats.groupby(['team_name', 'player_name']).mean(numeric_only=True).reset_index()
 
     averages['fg_pct'] = safe_pct(averages['fg_made'], averages['fg_attempted'])
     averages['three_pct'] = safe_pct(averages['three_made'], averages['three_attempted'])
     averages['ft_pct'] = safe_pct(averages['ft_made'], averages['ft_attempted'])
+    
+    # Calculate efficiency metrics from the averaged shooting data.
     averages['efg_pct'] = safe_pct(
         averages['fg_made'] + (0.5 * averages['three_made']),
         averages['fg_attempted']
@@ -295,6 +301,7 @@ def search():
     p_min_3pp = request.args.get('p_min_3pp', '')
     p_max_3pp = request.args.get('p_max_3pp', '')
 
+    # Only run each search section when the user has entered at least one filter.
     team_searched = any([team != 'all', result != 'all', date_from, date_to,
                     min_pts, max_pts, min_3pp, max_3pp, min_fgp, max_fgp,
                     min_ftp, max_ftp, min_ast, max_ast, min_reb, max_reb,
@@ -570,6 +577,7 @@ def chart_data():
             h2h_filter = ''
             h2h_params = []
 
+            # In head-to-head mode, only keep games where the selected team faced the opposite-side selections.
             if head_to_head:
                 opposite_teams = opp_team_selections if side == 'yours' else your_team_selections
 
@@ -661,7 +669,7 @@ def player_graph_data():
 
         player_name = parts[0]
         team_name = parts[1]
-        side = parts[2]           # 'yours' or 'opp'
+        side = parts[2]
         home_away = parts[3] if len(parts) > 3 else 'both'
 
         is_your_team = 1 if side == 'yours' else 0
@@ -675,6 +683,7 @@ def player_graph_data():
         h2h_filter = ''
         h2h_params = []
 
+        # Player head-to-head means the selected player appeared in games against the opposite-side player selections.
         if head_to_head:
             opposite_players = opp_player_selections if side == 'yours' else your_player_selections
 

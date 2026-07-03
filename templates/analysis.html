@@ -266,7 +266,7 @@
     <div id="h2hGraphsContainer"></div>
 
     <!-- ═══════════════════════════════════════════════════
-        TEAM MATCHUP
+         TEAM MATCHUP
     ════════════════════════════════════════════════════ -->
     <div class="card">
         <h2>Team Matchup</h2>
@@ -430,6 +430,7 @@ const oppTeams = {{ opp_teams | tojson }};
 const yourPlayers = {{ your_players | tojson }};
 const oppPlayers = {{ opp_players | tojson }};
 
+// Normalize backend team lists into option objects used by autocomplete and tag selection.
 const yourTeamOptions = teams.map(t => ({
     label: t,
     team_name: t,
@@ -444,6 +445,7 @@ const oppTeamOptions = oppTeams.map(t => ({
     key: `${t}||opp`
 }));
 
+// Include team names in player labels because classic rosters can contain the same player.
 const yourPlayerOptions = yourPlayers.map(p => ({
     label: `${p.player_name} (${p.team_name})`,
     player_name: p.player_name,
@@ -458,7 +460,7 @@ const oppPlayerOptions = oppPlayers.map(p => ({
     side: 'opp'
 }));
 
-// For matchup table (your players only)
+// Player matchup table only compares players from the user's teams against opponent teams.
 const matchupPlayerOptions = yourPlayers.map(p => ({
     label: `${p.player_name} (${p.team_name})`,
     player_name: p.player_name,
@@ -486,6 +488,7 @@ let teamMatchupOppTeamSelection = null;
 let playerMatchupOppTeamSelection = null;
 let playerMatchupPlayerSelection = null;
 
+// Chart datasets cycle through these colors when multiple teams or players are graphed.
 const lineColors = [
     '#98002E', '#2196F3', '#4caf50', '#FF9800', '#9C27B0',
     '#00BCD4', '#FF5722', '#8BC34A', '#FFC107', '#E91E63'
@@ -494,11 +497,8 @@ const lineColors = [
 let graphCount = 0;
 let selectedTeams = new Map();
 
-// Graph builder player selections: key -> { option, homeAway }
+// Player selections use composite keys to separate same-name players by team, side, and home/away filter.
 let graphPlayers = new Map();
-
-// Matchup table players
-let matchupPlayers = new Map();
 
 // H2H graph builder selections
 let h2hSelectedTeams = new Map();
@@ -610,7 +610,7 @@ function filterDropdown(side) {
     const dropdown = document.getElementById(dropdownId);
     dropdown.innerHTML = '';
 
-    // Filter out already-added players (match on name+team+side)
+    // Prevent duplicate player tags on the same side by matching player name and team.
     const existing = new Set([...graphPlayers.keys()].filter(k => k.includes(`||${side}`)).map(k => k.split('||').slice(0,2).join('||')));
     const filtered = options.filter(p =>
         p.label.toLowerCase().includes(input) && !existing.has(`${p.player_name}||${p.team_name}`)
@@ -635,7 +635,7 @@ function addPlayerTag(p, side, accentColor, inputId, dropdownId) {
     document.getElementById(inputId).value = '';
     document.getElementById(dropdownId).style.display = 'none';
 
-    // Default: both home and away
+    // New player tags default to all games until the user selects home or away.
     const key = `${p.player_name}||${p.team_name}||${side}||both`;
     if (graphPlayers.has(key)) return;
 
@@ -777,6 +777,7 @@ function filterH2HPlayerDropdown(side) {
     const dropdown = document.getElementById(dropdownId);
     dropdown.innerHTML = '';
 
+    // Prevent duplicate H2H player tags on the same side by matching player name and team.
     const existing = new Set([...h2hSelectedPlayers.keys()].filter(k => k.includes(`||${side}`)).map(k => k.split('||').slice(0,2).join('||')));
     const filtered = options.filter(p =>
         p.label.toLowerCase().includes(input) && !existing.has(`${p.player_name}||${p.team_name}`)
@@ -836,6 +837,7 @@ async function addH2HGraph() {
     let selectionKeys = [];
     let selectionLabels = [];
 
+    // H2H graphs require at least one selection from each side.
     if (type === 'team') {
         const hasYourTeam = [...h2hSelectedTeams.values()].some(t => t.side === 'yours');
         const hasOppTeam = [...h2hSelectedTeams.values()].some(t => t.side === 'opp');
@@ -891,6 +893,7 @@ async function addH2HGraph() {
 function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
     const graphId = `h2h_graph_${graphCount++}`;
 
+    // Build one shared game list so every selected team/player lines up on the same x-axis.
     const allGames = [];
     const seenGames = new Set();
 
@@ -932,6 +935,8 @@ function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLa
 
     const datasets = selectionKeys.map((key, i) => {
         const gameData = data[key] || [];
+
+        // Map each selection's data by game_id so missing games can render as gaps.
         const gameMap = {};
         gameData.forEach(g => gameMap[g.game_id] = g);
 
@@ -1065,6 +1070,7 @@ async function addGraph() {
 function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
     const graphId = `graph_${graphCount++}`;
 
+    // Build one shared game list so every selected team/player lines up on the same x-axis.
     const allGames = [];
     const seenGames = new Set();
 
@@ -1106,6 +1112,8 @@ function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel
 
     const datasets = selectionKeys.map((key, i) => {
         const gameData = data[key] || [];
+        
+        // Map each selection's data by game_id so missing games can render as gaps.
         const gameMap = {};
         gameData.forEach(g => gameMap[g.game_id] = g);
 
@@ -1202,6 +1210,7 @@ function selectTeamMatchupTeam(side, team) {
     }
 }
 
+// Display labels for the matchup comparison tables.
 const statLabels = {
     pts: 'PTS', ast: 'AST', reb: 'REB', stl: 'STL',
     blk: 'BLK', to_: 'TO', fgm: 'FGM', fga: 'FGA',
@@ -1209,6 +1218,7 @@ const statLabels = {
     ftm: 'FTM', fta: 'FTA', ft_pct: 'FT%'
 };
 
+// Reused by both team and player matchup tables to compare overall averages against opponent-specific averages.
 function buildComparisonTable(overall, vs_opp, label) {
     const stats = Object.keys(statLabels);
     let rows = '';
@@ -1331,6 +1341,7 @@ async function loadPlayerMatchup() {
     const oppTeam = playerMatchupOppTeamSelection || '';
     const selectedPlayer = playerMatchupPlayerSelection;
 
+    // Player matchup requires one user-side player and one opponent team.
     if (!selectedPlayer) { alert('Please select a player.'); return; }
     if (!oppTeam) { alert('Please select an opponent team.'); return; }
     
@@ -1348,7 +1359,7 @@ async function loadPlayerMatchup() {
     });
 }
 
-// Init
+// Clear matchup inputs and stored selections on initial load or browser back/forward restore.
 function resetTeamMatchupInputs() {
     const yourInput = document.getElementById('teamMatchupYourTeamInput');
     const oppInput = document.getElementById('teamMatchupOppTeamInput');
