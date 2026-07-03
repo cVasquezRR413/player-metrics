@@ -580,7 +580,7 @@ function addTeamTag(t, accentColor, inputId, dropdownId) {
 
     selectedTeams.set(t.key, t);
 
-    const sideLabel = t.side === 'yours' ? 'Yours' : 'Opp';
+    const sideLabel = t.side === 'yours' ? 'User' : 'Opp';
     const tag = document.createElement('span');
     tag.className = 'player-tag';
     tag.dataset.key = t.key;
@@ -641,7 +641,7 @@ function addPlayerTag(p, side, accentColor, inputId, dropdownId) {
 
     graphPlayers.set(key, { option: p, homeAway: 'both' });
 
-    const sideLabel = side === 'yours' ? 'Yours' : 'Opp';
+    const sideLabel = side === 'yours' ? 'User' : 'Opp';
     const tag = document.createElement('span');
     tag.className = 'player-tag';
     tag.dataset.key = key;
@@ -747,7 +747,7 @@ function addH2HTeamTag(t, accentColor, inputId, dropdownId) {
 
     h2hSelectedTeams.set(t.key, t);
 
-    const sideLabel = t.side === 'yours' ? 'Yours' : 'Opp';
+    const sideLabel = t.side === 'yours' ? 'User' : 'Opp';
     const tag = document.createElement('span');
     tag.className = 'player-tag';
     tag.dataset.key = t.key;
@@ -807,7 +807,7 @@ function addH2HPlayerTag(p, side, accentColor, inputId, dropdownId) {
 
     h2hSelectedPlayers.set(key, p);
 
-    const sideLabel = side === 'yours' ? 'Yours' : 'Opp';
+    const sideLabel = side === 'yours' ? 'User' : 'Opp';
     const tag = document.createElement('span');
     tag.className = 'player-tag';
     tag.dataset.key = key;
@@ -850,7 +850,7 @@ async function addH2HGraph() {
         selectionKeys = [...h2hSelectedTeams.keys()];
         selectionLabels = selectionKeys.map(k => {
             const team = h2hSelectedTeams.get(k);
-            const sideLabel = team.side === 'yours' ? 'Yours' : 'Opp';
+            const sideLabel = team.side === 'yours' ? 'User' : 'Opp';
             return `${team.team_name} [${sideLabel}]`;
         });
     } else {
@@ -865,7 +865,7 @@ async function addH2HGraph() {
         selectionKeys = [...h2hSelectedPlayers.keys()];
         selectionLabels = selectionKeys.map(k => {
             const [name, team, side] = k.split('||');
-            const sideLabel = side === 'yours' ? 'Yours' : 'Opp';
+            const sideLabel = side === 'yours' ? 'User' : 'Opp';
             return `${name} (${team}) [${sideLabel}]`;
         });
     }
@@ -1043,7 +1043,7 @@ async function addGraph() {
         selectionKeys = [...selectedTeams.keys()];
         selectionLabels = selectionKeys.map(k => {
             const team = selectedTeams.get(k);
-            const sideLabel = team.side === 'yours' ? 'Yours' : 'Opp';
+            const sideLabel = team.side === 'yours' ? 'User' : 'Opp';
             return `${team.team_name} [${sideLabel}]`;
         });
     } else {
@@ -1058,9 +1058,9 @@ async function addGraph() {
         selectionKeys = [...graphPlayers.keys()];
         selectionLabels = selectionKeys.map(k => {
             const [name, team, side, ha] = k.split('||');
-            const sideLabel = side === 'yours' ? 'Yours' : 'Opp';
+            const sideLabel = side === 'yours' ? 'User' : 'Opp';
             const haLabel = ha === 'both' ? '' : ` | ${ha === 'home' ? 'Home' : 'Away'}`;
-            return `${name} [${sideLabel}${haLabel}]`;
+            return `${name} (${team}) [${sideLabel}${haLabel}]`;
         });
     }
 
