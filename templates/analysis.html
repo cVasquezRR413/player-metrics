@@ -688,6 +688,14 @@ function removeTagFromMap(map, key, selector) {
     if (tag) tag.remove();
 }
 
+function getExistingPlayerTeamKeys(selectionMap, side) {
+    return new Set(
+        [...selectionMap.keys()]
+            .filter(k => k.includes(`||${side}`))
+            .map(k => k.split('||').slice(0, 2).join('||'))
+    );
+}
+
 function removeTeamTag(key) {
     removeTagFromMap(
         selectedTeams,
@@ -707,7 +715,7 @@ function filterDropdown(side) {
     clearDropdown(dropdownId);
 
     // Prevent duplicate player tags on the same side by matching player name and team.
-    const existing = new Set([...graphPlayers.keys()].filter(k => k.includes(`||${side}`)).map(k => k.split('||').slice(0,2).join('||')));
+    const existing = getExistingPlayerTeamKeys(graphPlayers, side);
     const filtered = options.filter(p =>
         p.label.toLowerCase().includes(input) && !existing.has(`${p.player_name}||${p.team_name}`)
     );
@@ -870,7 +878,7 @@ function filterH2HPlayerDropdown(side) {
     clearDropdown(dropdownId);
 
     // Prevent duplicate H2H player tags on the same side by matching player name and team.
-    const existing = new Set([...h2hSelectedPlayers.keys()].filter(k => k.includes(`||${side}`)).map(k => k.split('||').slice(0,2).join('||')));
+    const existing = getExistingPlayerTeamKeys(h2hSelectedPlayers, side);
     const filtered = options.filter(p =>
         p.label.toLowerCase().includes(input) && !existing.has(`${p.player_name}||${p.team_name}`)
     );
