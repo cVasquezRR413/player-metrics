@@ -652,13 +652,9 @@ function filterTeamDropdown(side) {
     if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
 
     filtered.slice(0, 10).forEach(t => {
-        const item = document.createElement('div');
-        item.textContent = t.label;
-        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
-        item.onmouseenter = () => item.style.background = '#2a2a2a';
-        item.onmouseleave = () => item.style.background = 'transparent';
-        item.onclick = () => addTeamTag(t, accentColor, inputId, dropdownId);
-        dropdown.appendChild(item);
+        dropdown.appendChild(
+            createDropdownItem(t.label, () => addTeamTag(t, accentColor, inputId, dropdownId))
+        );
     });
 
     dropdown.style.display = 'block';
@@ -711,13 +707,9 @@ function filterDropdown(side) {
     if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
 
     filtered.slice(0, 10).forEach(p => {
-        const item = document.createElement('div');
-        item.textContent = p.label;
-        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
-        item.onmouseenter = () => item.style.background = '#2a2a2a';
-        item.onmouseleave = () => item.style.background = 'transparent';
-        item.onclick = () => addPlayerTag(p, side, accentColor, inputId, dropdownId);
-        dropdown.appendChild(item);
+        dropdown.appendChild(
+            createDropdownItem(p.label, () => addPlayerTag(p, side, accentColor, inputId, dropdownId))
+        );
     });
 
     dropdown.style.display = 'block';
@@ -819,13 +811,9 @@ function filterH2HTeamDropdown(side) {
     if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
 
     filtered.slice(0, 10).forEach(t => {
-        const item = document.createElement('div');
-        item.textContent = t.label;
-        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
-        item.onmouseenter = () => item.style.background = '#2a2a2a';
-        item.onmouseleave = () => item.style.background = 'transparent';
-        item.onclick = () => addH2HTeamTag(t, accentColor, inputId, dropdownId);
-        dropdown.appendChild(item);
+        dropdown.appendChild(
+            createDropdownItem(t.label, () => addH2HTeamTag(t, accentColor, inputId, dropdownId))
+        );
     });
 
     dropdown.style.display = 'block';
@@ -878,13 +866,9 @@ function filterH2HPlayerDropdown(side) {
     if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
 
     filtered.slice(0, 10).forEach(p => {
-        const item = document.createElement('div');
-        item.textContent = p.label;
-        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
-        item.onmouseenter = () => item.style.background = '#2a2a2a';
-        item.onmouseleave = () => item.style.background = 'transparent';
-        item.onclick = () => addH2HPlayerTag(p, side, accentColor, inputId, dropdownId);
-        dropdown.appendChild(item);
+        dropdown.appendChild(
+            createDropdownItem(p.label, () => addH2HPlayerTag(p, side, accentColor, inputId, dropdownId))
+        );
     });
 
     dropdown.style.display = 'block';
