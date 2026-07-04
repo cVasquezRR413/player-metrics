@@ -14,6 +14,20 @@ def safe_pct(numerator, denominator, decimals=3):
 def clean_records(df):
     return df.astype(object).where(pd.notnull(df), None).to_dict('records')
 
+# Calculate average stat records for matchup tables.
+def calc_stat_avgs(df):
+    if df.empty:
+        return {}
+
+    df = df.copy()
+    df['fg_pct'] = safe_pct(df['fgm'], df['fga'])
+    df['three_pct'] = safe_pct(df['tpm'], df['tpa'])
+    df['ft_pct'] = safe_pct(df['ftm'], df['fta'])
+
+    avgs = df.mean(numeric_only=True).round(2)
+
+    return avgs.astype(object).where(pd.notnull(avgs), None).to_dict()
+
 @app.route("/")
 def home():
     conn = get_connection()
@@ -549,7 +563,6 @@ def chart_data():
     limit = request.args.get('limit', 'all')
     head_to_head = request.args.get('head_to_head', '0') == '1'
     selections = request.args.getlist('selections')
-    print("Selections received:", selections)
 
     results = {}
 
@@ -626,7 +639,6 @@ def chart_data():
         if limit != 'all':
             df = df.tail(int(limit))
 
-        print(f"Processing selection: '{selection}', rows returned: {len(df)}")
         results[selection] = df.to_dict('records')
 
     conn.close()
@@ -929,6 +941,13 @@ def matchup_data():
     results = {}
 
     if matchup_type == 'team':
+        team_filter = ""
+        overall_params = []
+
+        if your_team != 'all':
+            team_filter = "AND t.team_name = ?"
+            overall_params.append(your_team)
+
         overall = pd.read_sql_query("""
             SELECT SUM(ps.points) as pts, SUM(ps.assists) as ast,
                    SUM(ps.rebounds) as reb, SUM(ps.steals) as stl,
@@ -943,7 +962,12 @@ def matchup_data():
             WHERE t.is_your_team = 1
             {team_filter}
             GROUP BY g.game_id
-        """.format(team_filter=f"AND t.team_name = '{your_team}'" if your_team != 'all' else ''), conn)
+            """.format(team_filter=team_filter), conn, params=overall_params)
+        
+        vs_opp_params = [opp_team]
+
+        if your_team != 'all':
+            vs_opp_params.append(your_team)
 
         vs_opp = pd.read_sql_query("""
             SELECT SUM(ps.points) as pts, SUM(ps.assists) as ast,
@@ -960,23 +984,15 @@ def matchup_data():
             WHERE t.is_your_team = 1 AND t2.team_name = ?
             {team_filter}
             GROUP BY g.game_id
-        """.format(team_filter=f"AND t.team_name = '{your_team}'" if your_team != 'all' else ''), conn, params=(opp_team,))
+        """.format(team_filter=team_filter), conn, params=vs_opp_params)
 
         if limit != 'all':
             vs_opp = vs_opp.sort_values(['game_id']).tail(int(limit))
 
-        def calc_avgs(df):
-            if df.empty:
-                return {}
-            df['fg_pct'] = (df['fgm'] / df['fga']).round(3)
-            df['three_pct'] = (df['tpm'] / df['tpa']).round(3)
-            df['ft_pct'] = (df['ftm'] / df['fta']).round(3)
-            return df.mean(numeric_only=True).round(2).to_dict()
-
         results = {
             'type': 'team',
-            'overall': calc_avgs(overall),
-            'vs_opp': calc_avgs(vs_opp),
+            'overall': calc_stat_avgs(overall),
+            'vs_opp': calc_stat_avgs(vs_opp),
             'games_vs': len(vs_opp),
             'total_games': len(overall)
         }
@@ -1018,21 +1034,11 @@ def matchup_data():
             if limit != 'all':
                 vs_opp = vs_opp.sort_values(['game_id']).tail(int(limit))
 
-            def calc_avgs(df):
-                if df.empty:
-                    return {}
-                df['fg_pct'] = (df['fgm'] / df['fga']).round(3)
-                df['three_pct'] = (df['tpm'] / df['tpa']).round(3)
-                df['ft_pct'] = (df['ftm'] / df['fta']).round(3)
-
-                avgs = df.mean(numeric_only=True).round(2)
-                return avgs.astype(object).where(pd.notnull(avgs), None).to_dict()
-
             results[selection] = {
                 'player_name': player_name,
                 'team_name': team_name,
-                'overall': calc_avgs(overall),
-                'vs_opp': calc_avgs(vs_opp),
+                'overall': calc_stat_avgs(overall),
+                'vs_opp': calc_stat_avgs(vs_opp),
                 'games_vs': len(vs_opp),
                 'total_games': len(overall)
             }
