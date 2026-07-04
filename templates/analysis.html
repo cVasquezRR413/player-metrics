@@ -1080,11 +1080,9 @@ document.addEventListener('click', (e) => {
         'h2hOppTeamDropdown',
         'h2hYourPlayerDropdown',
         'h2hOppPlayerDropdown'
-    ].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.style.display = 'none';
-    });
+    ].forEach(hideDropdown);
 });
+
 document.getElementById('yourTeamInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('oppTeamInput')?.addEventListener('click', e => e.stopPropagation());
 document.getElementById('yourPlayerInput')?.addEventListener('click', e => e.stopPropagation());
