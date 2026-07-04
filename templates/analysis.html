@@ -1021,27 +1021,8 @@ function buildGameAxis(data) {
     };
 }
 
-function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
-    const graphId = `h2h_graph_${graphCount++}`;
-
-    const { allGames, labels } = buildGameAxis(data);
-
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.id = graphId;
-    card.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-            <h2>H2H ${statLabel} — ${selectionLabels.join(' vs ')} (${limitLabel})</h2>
-            <button onclick="document.getElementById('${graphId}').remove()"
-                style="background:none; border:1px solid #333; color:#666; padding:0.3rem 0.8rem; border-radius:4px; cursor:pointer; font-size:0.8rem;">
-                Remove
-            </button>
-        </div>
-        <canvas id="canvas_${graphId}" height="80"></canvas>
-    `;
-    document.getElementById('h2hGraphsContainer').appendChild(card);
-
-    const datasets = selectionKeys.map((key, i) => {
+function buildChartDatasets(data, selectionKeys, selectionLabels, allGames) {
+    return selectionKeys.map((key, i) => {
         const gameData = data[key] || [];
 
         // Map each selection's data by game_id so missing games can render as gaps.
@@ -1065,6 +1046,29 @@ function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLa
             spanGaps: false
         };
     });
+}
+
+function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
+    const graphId = `h2h_graph_${graphCount++}`;
+
+    const { allGames, labels } = buildGameAxis(data);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.id = graphId;
+    card.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+            <h2>H2H ${statLabel} — ${selectionLabels.join(' vs ')} (${limitLabel})</h2>
+            <button onclick="document.getElementById('${graphId}').remove()"
+                style="background:none; border:1px solid #333; color:#666; padding:0.3rem 0.8rem; border-radius:4px; cursor:pointer; font-size:0.8rem;">
+                Remove
+            </button>
+        </div>
+        <canvas id="canvas_${graphId}" height="80"></canvas>
+    `;
+    document.getElementById('h2hGraphsContainer').appendChild(card);
+
+    const datasets = buildChartDatasets(data, selectionKeys, selectionLabels, allGames);
 
     new Chart(document.getElementById(`canvas_${graphId}`), {
         type: 'line',
@@ -1199,30 +1203,7 @@ function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel
     `;
     document.getElementById('graphsContainer').appendChild(card);
 
-    const datasets = selectionKeys.map((key, i) => {
-        const gameData = data[key] || [];
-        
-        // Map each selection's data by game_id so missing games can render as gaps.
-        const gameMap = {};
-        gameData.forEach(g => gameMap[g.game_id] = g);
-
-        return {
-            label: selectionLabels[i],
-            data: allGames.map(game => gameMap[game.game_id] ? gameMap[game.game_id].value : null),
-            borderColor: lineColors[i % lineColors.length],
-            backgroundColor: lineColors[i % lineColors.length] + '20',
-            borderWidth: 2,
-            pointRadius: 4,
-            pointBackgroundColor: allGames.map(game => {
-                const g = gameMap[game.game_id];
-                if (!g) return '#444';
-                return g.win_loss === 'W' ? '#4caf50' : '#98002E';
-            }),
-            tension: 0.3,
-            fill: false,
-            spanGaps: false
-        };
-    });
+    const datasets = buildChartDatasets(data, selectionKeys, selectionLabels, allGames);
 
     new Chart(document.getElementById(`canvas_${graphId}`), {
         type: 'line',
