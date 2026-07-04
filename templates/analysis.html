@@ -643,7 +643,7 @@ function filterTeamDropdown(side) {
 
     const input = document.getElementById(inputId).value.toLowerCase();
     const dropdown = document.getElementById(dropdownId);
-    dropdown.innerHTML = '';
+    clearDropdown(dropdownId);
 
     const filtered = options.filter(t =>
         t.label.toLowerCase().includes(input) && !selectedTeams.has(t.key)
@@ -662,7 +662,7 @@ function filterTeamDropdown(side) {
 
 function addTeamTag(t, accentColor, inputId, dropdownId) {
     document.getElementById(inputId).value = '';
-    document.getElementById(dropdownId).style.display = 'none';
+    hideDropdown(dropdownId);
 
     if (selectedTeams.has(t.key)) return;
 
@@ -696,7 +696,7 @@ function filterDropdown(side) {
 
     const input = document.getElementById(inputId).value.toLowerCase();
     const dropdown = document.getElementById(dropdownId);
-    dropdown.innerHTML = '';
+    clearDropdown(dropdownId);
 
     // Prevent duplicate player tags on the same side by matching player name and team.
     const existing = new Set([...graphPlayers.keys()].filter(k => k.includes(`||${side}`)).map(k => k.split('||').slice(0,2).join('||')));
@@ -717,7 +717,7 @@ function filterDropdown(side) {
 
 function addPlayerTag(p, side, accentColor, inputId, dropdownId) {
     document.getElementById(inputId).value = '';
-    document.getElementById(dropdownId).style.display = 'none';
+    hideDropdown(dropdownId);
 
     // New player tags default to all games until the user selects home or away.
     const key = `${p.player_name}||${p.team_name}||${side}||both`;
@@ -802,7 +802,7 @@ function filterH2HTeamDropdown(side) {
 
     const input = document.getElementById(inputId).value.toLowerCase();
     const dropdown = document.getElementById(dropdownId);
-    dropdown.innerHTML = '';
+    clearDropdown(dropdownId);
 
     const filtered = options.filter(t =>
         t.label.toLowerCase().includes(input) && !h2hSelectedTeams.has(t.key)
@@ -821,7 +821,7 @@ function filterH2HTeamDropdown(side) {
 
 function addH2HTeamTag(t, accentColor, inputId, dropdownId) {
     document.getElementById(inputId).value = '';
-    document.getElementById(dropdownId).style.display = 'none';
+    hideDropdown(dropdownId);
 
     if (h2hSelectedTeams.has(t.key)) return;
 
@@ -855,7 +855,7 @@ function filterH2HPlayerDropdown(side) {
 
     const input = document.getElementById(inputId).value.toLowerCase();
     const dropdown = document.getElementById(dropdownId);
-    dropdown.innerHTML = '';
+    clearDropdown(dropdownId);
 
     // Prevent duplicate H2H player tags on the same side by matching player name and team.
     const existing = new Set([...h2hSelectedPlayers.keys()].filter(k => k.includes(`||${side}`)).map(k => k.split('||').slice(0,2).join('||')));
@@ -876,7 +876,7 @@ function filterH2HPlayerDropdown(side) {
 
 function addH2HPlayerTag(p, side, accentColor, inputId, dropdownId) {
     document.getElementById(inputId).value = '';
-    document.getElementById(dropdownId).style.display = 'none';
+    hideDropdown(dropdownId);
 
     const key = `${p.player_name}||${p.team_name}||${side}`;
     if (h2hSelectedPlayers.has(key)) return;
@@ -1391,7 +1391,7 @@ function filterMatchupDropdown() {
 function selectMatchupPlayer(player) {
     playerMatchupPlayerSelection = player;
     document.getElementById('matchupPlayerInput').value = player.label;
-    document.getElementById('matchupPlayerDropdown').style.display = 'none';
+    hideDropdown('matchupPlayerDropdown');
 }
 
 function filterPlayerMatchupOppTeamDropdown() {
@@ -1418,7 +1418,7 @@ function filterPlayerMatchupOppTeamDropdown() {
 function selectPlayerMatchupOppTeam(team) {
     playerMatchupOppTeamSelection = team;
     document.getElementById('playerMatchupOppTeamInput').value = team;
-    document.getElementById('playerMatchupOppTeamDropdown').style.display = 'none';
+    hideDropdown('playerMatchupOppTeamDropdown');
 }
 
 async function loadPlayerMatchup() {
