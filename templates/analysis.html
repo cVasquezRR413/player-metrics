@@ -1097,18 +1097,24 @@ document.addEventListener('click', (e) => {
     ].forEach(hideDropdown);
 });
 
-document.getElementById('yourTeamInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('oppTeamInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('yourPlayerInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('oppPlayerInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('h2hYourTeamInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('h2hOppTeamInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('h2hYourPlayerInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('h2hOppPlayerInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('matchupPlayerInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('playerMatchupOppTeamInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('teamMatchupYourTeamInput')?.addEventListener('click', e => e.stopPropagation());
-document.getElementById('teamMatchupOppTeamInput')?.addEventListener('click', e => e.stopPropagation());
+function stopClickPropagation(id) {
+    document.getElementById(id)?.addEventListener('click', e => e.stopPropagation());
+}
+
+[
+    'yourTeamInput',
+    'oppTeamInput',
+    'yourPlayerInput',
+    'oppPlayerInput',
+    'h2hYourTeamInput',
+    'h2hOppTeamInput',
+    'h2hYourPlayerInput',
+    'h2hOppPlayerInput',
+    'matchupPlayerInput',
+    'playerMatchupOppTeamInput',
+    'teamMatchupYourTeamInput',
+    'teamMatchupOppTeamInput'
+].forEach(stopClickPropagation);
 
 async function addGraph() {
     const type = document.getElementById('chartType').value;
