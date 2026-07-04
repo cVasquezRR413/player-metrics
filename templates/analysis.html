@@ -1255,6 +1255,16 @@ function createDropdownItem(label, onClick) {
     return item;
 }
 
+function hideDropdown(id) {
+    const dropdown = document.getElementById(id);
+    if (dropdown) dropdown.style.display = 'none';
+}
+
+function clearDropdown(id) {
+    const dropdown = document.getElementById(id);
+    if (dropdown) dropdown.innerHTML = '';
+}
+
 function filterTeamMatchupDropdown(side) {
     const inputId = side === 'yours' ? 'teamMatchupYourTeamInput' : 'teamMatchupOppTeamInput';
     const dropdownId = side === 'yours' ? 'teamMatchupYourTeamDropdown' : 'teamMatchupOppTeamDropdown';
@@ -1262,7 +1272,7 @@ function filterTeamMatchupDropdown(side) {
 
     const input = document.getElementById(inputId).value.toLowerCase();
     const dropdown = document.getElementById(dropdownId);
-    dropdown.innerHTML = '';
+    clearDropdown(dropdownId);
 
     const filtered = options.filter(t => t.label.toLowerCase().includes(input));
 
@@ -1284,11 +1294,11 @@ function selectTeamMatchupTeam(side, team) {
     if (side === 'yours') {
         teamMatchupYourTeamSelection = team;
         document.getElementById('teamMatchupYourTeamInput').value = team.label;
-        document.getElementById('teamMatchupYourTeamDropdown').style.display = 'none';
+        hideDropdown('teamMatchupYourTeamDropdown');
     } else {
         teamMatchupOppTeamSelection = team;
         document.getElementById('teamMatchupOppTeamInput').value = team.label;
-        document.getElementById('teamMatchupOppTeamDropdown').style.display = 'none';
+        hideDropdown('teamMatchupOppTeamDropdown');
     }
 }
 
@@ -1361,7 +1371,7 @@ async function loadTeamMatchup() {
 function filterMatchupDropdown() {
     const input = document.getElementById('matchupPlayerInput').value.toLowerCase();
     const dropdown = document.getElementById('matchupPlayerDropdown');
-    dropdown.innerHTML = '';
+    clearDropdown('matchupPlayerDropdown');
 
     const filtered = matchupPlayerOptions.filter(p =>
         p.label.toLowerCase().includes(input)
@@ -1387,7 +1397,7 @@ function selectMatchupPlayer(player) {
 function filterPlayerMatchupOppTeamDropdown() {
     const input = document.getElementById('playerMatchupOppTeamInput').value.toLowerCase();
     const dropdown = document.getElementById('playerMatchupOppTeamDropdown');
-    dropdown.innerHTML = '';
+    clearDropdown('playerMatchupOppTeamDropdown');
 
     const filtered = oppTeams.filter(t => t.toLowerCase().includes(input));
 
