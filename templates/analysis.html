@@ -992,10 +992,7 @@ async function addH2HGraph() {
     renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel);
 }
 
-function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
-    const graphId = `h2h_graph_${graphCount++}`;
-
-    // Build one shared game list so every selected team/player lines up on the same x-axis.
+function buildGameAxis(data) {
     const allGames = [];
     const seenGames = new Set();
 
@@ -1018,7 +1015,16 @@ function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLa
         return a.date.localeCompare(b.date);
     });
 
-    const labels = allGames.map(g => g.date);
+    return {
+        allGames,
+        labels: allGames.map(g => g.date)
+    };
+}
+
+function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
+    const graphId = `h2h_graph_${graphCount++}`;
+
+    const { allGames, labels } = buildGameAxis(data);
 
     const card = document.createElement('div');
     card.className = 'card';
@@ -1176,30 +1182,7 @@ async function addGraph() {
 function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel) {
     const graphId = `graph_${graphCount++}`;
 
-    // Build one shared game list so every selected team/player lines up on the same x-axis.
-    const allGames = [];
-    const seenGames = new Set();
-
-    Object.values(data).forEach(gameList => {
-        gameList.forEach(g => {
-            if (!seenGames.has(g.game_id)) {
-                seenGames.add(g.game_id);
-                allGames.push({
-                    game_id: g.game_id,
-                    date: g.date
-                });
-            }
-        });
-    });
-
-    allGames.sort((a, b) => {
-        if (a.date === b.date) {
-            return a.game_id - b.game_id;
-        }
-        return a.date.localeCompare(b.date);
-    });
-
-    const labels = allGames.map(g => g.date);
+    const { allGames, labels } = buildGameAxis(data);
 
     const card = document.createElement('div');
     card.className = 'card';
