@@ -1261,6 +1261,16 @@ function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel
 
 // ─── TEAM MATCHUP AUTOCOMPLETE ───────────────────────
 
+function createDropdownItem(label, onClick) {
+    const item = document.createElement('div');
+    item.textContent = label;
+    item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
+    item.onmouseenter = () => item.style.background = '#2a2a2a';
+    item.onmouseleave = () => item.style.background = 'transparent';
+    item.onclick = onClick;
+    return item;
+}
+
 function filterTeamMatchupDropdown(side) {
     const inputId = side === 'yours' ? 'teamMatchupYourTeamInput' : 'teamMatchupOppTeamInput';
     const dropdownId = side === 'yours' ? 'teamMatchupYourTeamDropdown' : 'teamMatchupOppTeamDropdown';
@@ -1278,13 +1288,9 @@ function filterTeamMatchupDropdown(side) {
     }
 
     filtered.slice(0, 10).forEach(t => {
-        const item = document.createElement('div');
-        item.textContent = t.label;
-        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
-        item.onmouseenter = () => item.style.background = '#2a2a2a';
-        item.onmouseleave = () => item.style.background = 'transparent';
-        item.onclick = () => selectTeamMatchupTeam(side, t);
-        dropdown.appendChild(item);
+        dropdown.appendChild(
+            createDropdownItem(t.label, () => selectTeamMatchupTeam(side, t))
+        );
     });
 
     dropdown.style.display = 'block';
@@ -1380,13 +1386,9 @@ function filterMatchupDropdown() {
     if (filtered.length === 0) { dropdown.style.display = 'none'; return; }
 
     filtered.slice(0, 10).forEach(p => {
-        const item = document.createElement('div');
-        item.textContent = p.label;
-        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
-        item.onmouseenter = () => item.style.background = '#2a2a2a';
-        item.onmouseleave = () => item.style.background = 'transparent';
-        item.onclick = () => selectMatchupPlayer(p);
-        dropdown.appendChild(item);
+        dropdown.appendChild(
+            createDropdownItem(p.label, () => selectMatchupPlayer(p))
+        );
     });
 
     dropdown.style.display = 'block';
@@ -1411,13 +1413,9 @@ function filterPlayerMatchupOppTeamDropdown() {
     }
 
     filtered.slice(0, 10).forEach(team => {
-        const item = document.createElement('div');
-        item.textContent = team;
-        item.style.cssText = 'padding:0.5rem 1rem; cursor:pointer; color:#ccc; font-size:0.85rem;';
-        item.onmouseenter = () => item.style.background = '#2a2a2a';
-        item.onmouseleave = () => item.style.background = 'transparent';
-        item.onclick = () => selectPlayerMatchupOppTeam(team);
-        dropdown.appendChild(item);
+        dropdown.appendChild(
+            createDropdownItem(team, () => selectPlayerMatchupOppTeam(team))
+        );
     });
 
     dropdown.style.display = 'block';
