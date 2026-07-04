@@ -682,10 +682,18 @@ function addTeamTag(t, accentColor, inputId, dropdownId) {
     document.getElementById('teamTags').appendChild(tag);
 }
 
-function removeTeamTag(key) {
-    selectedTeams.delete(key);
-    const tag = document.querySelector(`.player-tag[data-key="${CSS.escape(key)}"]`);
+function removeTagFromMap(map, key, selector) {
+    map.delete(key);
+    const tag = document.querySelector(selector);
     if (tag) tag.remove();
+}
+
+function removeTeamTag(key) {
+    removeTagFromMap(
+        selectedTeams,
+        key,
+        `.player-tag[data-key="${CSS.escape(key)}"]`
+    );
 }
 
 function filterDropdown(side) {
@@ -771,9 +779,11 @@ function setHomeAway(btn, oldKey, newHa) {
 }
 
 function removePlayerTag(key) {
-    graphPlayers.delete(key);
-    const tag = document.querySelector(`.player-tag[data-key="${CSS.escape(key)}"]`);
-    if (tag) tag.remove();
+    removeTagFromMap(
+        graphPlayers,
+        key,
+        `.player-tag[data-key="${CSS.escape(key)}"]`
+    );
 }
 
 // ─── H2H GRAPH BUILDER UI ────────────────────────────
@@ -842,9 +852,11 @@ function addH2HTeamTag(t, accentColor, inputId, dropdownId) {
 }
 
 function removeH2HTeamTag(key) {
-    h2hSelectedTeams.delete(key);
-    const tag = document.querySelector(`#h2hTeamTags .player-tag[data-key="${CSS.escape(key)}"]`);
-    if (tag) tag.remove();
+    removeTagFromMap(
+        h2hSelectedTeams,
+        key,
+        `#h2hTeamTags .player-tag[data-key="${CSS.escape(key)}"]`
+    );
 }
 
 function filterH2HPlayerDropdown(side) {
@@ -898,9 +910,11 @@ function addH2HPlayerTag(p, side, accentColor, inputId, dropdownId) {
 }
 
 function removeH2HPlayerTag(key) {
-    h2hSelectedPlayers.delete(key);
-    const tag = document.querySelector(`#h2hPlayerTags .player-tag[data-key="${CSS.escape(key)}"]`);
-    if (tag) tag.remove();
+    removeTagFromMap(
+        h2hSelectedPlayers,
+        key,
+        `#h2hPlayerTags .player-tag[data-key="${CSS.escape(key)}"]`
+    );
 }
 
 async function addH2HGraph() {
