@@ -1,0 +1,199 @@
+/* ─── FORM LABELS ───────────────────────────────── */
+
+.field-label {
+    display: block;
+    color: #666;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 0.4rem;
+}
+
+.field-label-user {
+    color: #98002E;
+}
+
+.field-label-opp {
+    color: #2196F3;
+}
+
+/* ─── LAYOUT HELPERS ─────────────────────────────── */
+
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.form-grid-matchup {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.form-grid-player-matchup {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    min-height: 2rem;
+}
+
+.results-container {
+    margin-top: 1.5rem;
+}
+
+.hidden {
+    display: none;
+}
+
+/* ─── FORM CONTROLS ──────────────────────────────── */
+
+.form-control {
+    background: #1a1a1a;
+    color: #e0e0e0;
+    border: 1px solid #333;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    width: 100%;
+    font-size: 0.9rem;
+    box-sizing: border-box;
+}
+
+.form-control-opp {
+    border-color: #2196F320;
+}
+
+select.form-control {
+    padding-right: 2rem;
+}
+
+/* Hide number input arrows/spinners */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+/* ─── AUTOCOMPLETE DROPDOWNS ─────────────────────── */
+
+.autocomplete-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+/* ─── BUTTONS ───────────────────────────────────── */
+
+.primary-action-btn {
+    background: #98002E;
+    color: #fff;
+    border: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.remove-graph-btn {
+    background: none;
+    border: 1px solid #333;
+    color: #666;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+/* ─── TAGS ──────────────────────────────────────── */
+
+.player-tag {
+    color: #fff;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tag-control {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    border-radius: 3px;
+    padding: 0.1rem 0.4rem;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+
+.tag-control.active {
+    background: rgba(255,255,255,0.35);
+    font-weight: 700;
+}
+
+/* ─── ANALYSIS TABS ─────────────────────────────── */
+
+.analysis-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #222;
+}
+
+.analysis-tab {
+    background: transparent;
+    color: #777;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.analysis-tab:hover {
+    color: #e0e0e0;
+}
+
+.analysis-tab.active {
+    color: #fff;
+    border-bottom-color: #98002E;
+}
