@@ -82,58 +82,6 @@ def calc_stat_avgs(df):
 
     return avgs.astype(object).where(pd.notnull(avgs), None).to_dict()
 
-@app.route("/efficiency")
-def efficiency():
-    conn = get_connection()
-
-    selected_team = request.args.get('team', 'all')
-
-    query = """
-        SELECT t.team_name, ps.player_name,
-               ps.points, ps.fg_made, ps.fg_attempted,
-               ps.three_made, ps.ft_attempted
-        FROM player_stats ps
-        JOIN teams t ON ps.team_id = t.team_id
-        WHERE t.is_your_team = 1
-    """
-
-    stats = pd.read_sql_query(query, conn)
-    conn.close()
-
-    if stats.empty:
-        return render_template("efficiency.html",
-            players=[],
-            teams=[],
-            selected_team=selected_team
-        )
-
-    teams = stats['team_name'].unique().tolist()
-
-    if selected_team != 'all':
-        stats = stats[stats['team_name'] == selected_team]
-
-    averages = stats.groupby(['team_name', 'player_name']).mean(numeric_only=True).reset_index()
-
-    averages['efg_pct'] = safe_pct(
-        averages['fg_made'] + (0.5 * averages['three_made']),
-        averages['fg_attempted']
-    )
-    averages['ts_pct'] = safe_pct(
-        averages['points'],
-        2 * (averages['fg_attempted'] + (0.44 * averages['ft_attempted']))
-    )
-
-    averages = averages.round(2)
-    averages[['efg_pct', 'ts_pct']] = averages[['efg_pct', 'ts_pct']].round(3)
-
-    averages = averages.sort_values('points', ascending=False)
-
-    return render_template("efficiency.html",
-        players=clean_records(averages),
-        teams=teams,
-        selected_team=selected_team
-    )
-
 @app.route("/search")
 def search():
     conn = get_connection()
