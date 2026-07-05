@@ -55,6 +55,16 @@ def apply_numeric_filter(df, column, min_value='', max_value=''):
 
     return df
 
+# Split a selection string into parts with safe fallback values.
+def parse_selection(selection, defaults=None):
+    parts = selection.split('||')
+    defaults = defaults or []
+
+    return [
+        parts[index] if index < len(parts) else defaults[index]
+        for index in range(max(len(parts), len(defaults)))
+    ]
+
 # Calculate average stat records for matchup tables.
 def calc_stat_avgs(df):
     if df.empty:
@@ -548,9 +558,7 @@ def chart_data():
 
     if chart_type == 'team':
         for selection in selections:
-            parts = selection.split('||')
-            team_name = parts[0]
-            side = parts[1] if len(parts) > 1 else 'yours'
+            team_name, side = parse_selection(selection, defaults=['', 'yours'])
 
             if side == 'yours':
                 your_team_selections.append(team_name)
@@ -559,9 +567,7 @@ def chart_data():
 
     for selection in selections:
         if chart_type == 'team':
-            parts = selection.split('||')
-            team_name = parts[0]
-            side = parts[1] if len(parts) > 1 else 'yours'
+            team_name, side = parse_selection(selection, defaults=['', 'yours'])
             is_your_team = 1 if side == 'yours' else 0
 
             h2h_filter = ''
@@ -598,9 +604,7 @@ def chart_data():
             """
             df = pd.read_sql_query(query, conn, params=[is_your_team, team_name] + h2h_params)
         else:
-            parts = selection.split('||')
-            player_name = parts[0]
-            team_name = parts[1] if len(parts) > 1 else ''
+            player_name, team_name = parse_selection(selection, defaults=['', ''])
             query = f"""
                 SELECT g.date, g.win_loss, t2.team_name as opp_team,
                     ps.{stat} as value
