@@ -4,6 +4,11 @@ from database import get_connection
 
 app = Flask(__name__)
 
+ALLOWED_STATS = {
+    'points', 'assists', 'rebounds', 'steals', 'blocks',
+    'turnovers', 'fg_made', 'three_made', 'plus_minus', 'dunks'
+}
+
 # Calculate percentages while avoiding divide-by-zero values.
 def safe_pct(numerator, denominator, decimals=3):
     result = numerator / denominator
@@ -564,6 +569,10 @@ def chart_data():
     head_to_head = request.args.get('head_to_head', '0') == '1'
     selections = request.args.getlist('selections')
 
+    if stat not in ALLOWED_STATS:
+        conn.close()
+        return {'error': 'Invalid stat selected.'}, 400
+
     results = {}
 
     your_team_selections = []
@@ -654,6 +663,10 @@ def player_graph_data():
     stat = request.args.get('stat', 'points')
     limit = request.args.get('limit', 'all')
     head_to_head = request.args.get('head_to_head', '0') == '1'
+
+    if stat not in ALLOWED_STATS:
+        conn.close()
+        return {'error': 'Invalid stat selected.'}, 400
 
     results = {}
 
@@ -765,12 +778,7 @@ def h2h_graph_data():
     limit = request.args.get('limit', 'all')
     selections = request.args.getlist('selections')
 
-    allowed_stats = {
-        'points', 'assists', 'rebounds', 'steals', 'blocks',
-        'turnovers', 'fg_made', 'three_made', 'plus_minus', 'dunks'
-    }
-
-    if stat not in allowed_stats:
+    if stat not in ALLOWED_STATS:
         conn.close()
         return {'error': 'Invalid stat selected.'}, 400
 
