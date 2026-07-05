@@ -963,9 +963,11 @@ def matchup_data():
 
     else:
         for selection in selections:
-            parts = selection.split('||')
-            player_name = parts[0]
-            team_name = parts[1] if len(parts) > 1 else ''
+            player_name, team_name = parse_selection(selection, defaults=['', ''])
+
+            if not player_name or not team_name:
+                results[selection] = {}
+                continue
 
             overall = pd.read_sql_query("""
                 SELECT ps.points as pts, ps.assists as ast,
