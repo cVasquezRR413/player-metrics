@@ -55,14 +55,15 @@ def apply_numeric_filter(df, column, min_value='', max_value=''):
 
     return df
 
-# Split a selection string into parts with safe fallback values.
+# Split a selection string into the expected number of parts with safe fallback values.
 def parse_selection(selection, defaults=None):
     parts = selection.split('||')
     defaults = defaults or []
+    expected_length = len(defaults)
 
     return [
         parts[index] if index < len(parts) else defaults[index]
-        for index in range(max(len(parts), len(defaults)))
+        for index in range(expected_length)
     ]
 
 # Calculate average stat records for matchup tables.
@@ -645,13 +646,10 @@ def player_graph_data():
     opp_player_selections = []
 
     for selection in selections:
-        parts = selection.split('||')
-        if len(parts) < 3:
-            continue
+        player_name, team_name, side = parse_selection(selection, defaults=['', '', ''])
 
-        player_name = parts[0]
-        team_name = parts[1]
-        side = parts[2]
+        if not player_name or not team_name or not side:
+            continue
 
         if side == 'yours':
             your_player_selections.append((player_name, team_name))
@@ -659,14 +657,13 @@ def player_graph_data():
             opp_player_selections.append((player_name, team_name))
 
     for selection in selections:
-        parts = selection.split('||')
-        if len(parts) < 3:
-            continue
+        player_name, team_name, side, home_away = parse_selection(
+            selection,
+            defaults=['', '', '', 'both']
+        )
 
-        player_name = parts[0]
-        team_name = parts[1]
-        side = parts[2]
-        home_away = parts[3] if len(parts) > 3 else 'both'
+        if not player_name or not team_name or not side:
+            continue
 
         is_your_team = 1 if side == 'yours' else 0
 
