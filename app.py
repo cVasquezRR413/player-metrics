@@ -19,6 +19,16 @@ def safe_pct(numerator, denominator, decimals=3):
 def clean_records(df):
     return df.astype(object).where(pd.notnull(df), None).to_dict('records')
 
+# Limit a dataframe to the most recent rows when a numeric limit is selected.
+def apply_limit(df, limit, sort_columns=None):
+    if limit == 'all':
+        return df
+
+    if sort_columns:
+        df = df.sort_values(sort_columns)
+
+    return df.tail(int(limit))
+
 # Calculate average stat records for matchup tables.
 def calc_stat_avgs(df):
     if df.empty:
@@ -645,8 +655,7 @@ def chart_data():
             """
             df = pd.read_sql_query(query, conn, params=(player_name, team_name))
 
-        if limit != 'all':
-            df = df.tail(int(limit))
+        df = apply_limit(df, limit)
 
         results[selection] = df.to_dict('records')
 
@@ -759,8 +768,7 @@ def player_graph_data():
             params=[is_your_team, player_name, team_name] + h2h_params
         )
 
-        if limit != 'all':
-            df = df.tail(int(limit))
+        df = apply_limit(df, limit)
 
         results[selection] = df.to_dict('records')
 
@@ -842,8 +850,7 @@ def h2h_graph_data():
                 params=[is_your_team, team_name] + opposite_teams
             )
 
-            if limit != 'all':
-                df = df.tail(int(limit))
+            df = apply_limit(df, limit)
 
             results[selection] = df.to_dict('records')
 
@@ -926,8 +933,7 @@ def h2h_graph_data():
                 params=[is_your_team, player_name, team_name] + h2h_params
             )
 
-            if limit != 'all':
-                df = df.tail(int(limit))
+            df = apply_limit(df, limit)
 
             results[selection] = df.to_dict('records')
 
@@ -994,8 +1000,7 @@ def matchup_data():
             GROUP BY g.game_id
         """.format(team_filter=team_filter), conn, params=vs_opp_params)
 
-        if limit != 'all':
-            vs_opp = vs_opp.sort_values(['game_id']).tail(int(limit))
+        vs_opp = apply_limit(vs_opp, limit, sort_columns=['game_id'])
 
         results = {
             'type': 'team',
@@ -1039,8 +1044,7 @@ def matchup_data():
                 AND t.team_name = ? AND t2.team_name = ?
             """, conn, params=(player_name, team_name, opp_team))
 
-            if limit != 'all':
-                vs_opp = vs_opp.sort_values(['game_id']).tail(int(limit))
+            vs_opp = apply_limit(vs_opp, limit, sort_columns=['game_id'])
 
             results[selection] = {
                 'player_name': player_name,
