@@ -17,26 +17,6 @@ def safe_pct(numerator, denominator, decimals=3):
     result = result.where(denominator != 0)
     return result.round(decimals)
 
-# Add standard shooting percentages to a dataframe.
-def add_shooting_pcts(df):
-    df['fg_pct'] = safe_pct(df['fg_made'], df['fg_attempted'])
-    df['three_pct'] = safe_pct(df['three_made'], df['three_attempted'])
-    df['ft_pct'] = safe_pct(df['ft_made'], df['ft_attempted'])
-
-    return df
-
-# Add shooting percentages to team search totals.
-def add_team_search_pcts(df):
-    df['three_pct'] = safe_pct(df['total_3pm'], df['total_3pa'])
-    df['fg_pct'] = safe_pct(df['total_fgm'], df['total_fga'])
-    df['ft_pct'] = safe_pct(df['total_ftm'], df['total_fta'])
-
-    return df
-
-# Convert pandas NaN values to None so templates receive clean records.
-def clean_records(df):
-    return df.astype(object).where(pd.notnull(df), None).to_dict('records')
-
 # Limit a dataframe to the most recent rows when a numeric limit is selected.
 def apply_limit(df, limit, sort_columns=None):
     if limit == 'all':
@@ -46,16 +26,6 @@ def apply_limit(df, limit, sort_columns=None):
         df = df.sort_values(sort_columns)
 
     return df.tail(int(limit))
-
-# Apply optional minimum and maximum filters to a numeric dataframe column.
-def apply_numeric_filter(df, column, min_value='', max_value=''):
-    if min_value:
-        df = df[df[column] >= float(min_value)]
-
-    if max_value:
-        df = df[df[column] <= float(max_value)]
-
-    return df
 
 # Split a selection string into the expected number of parts with safe fallback values.
 def parse_selection(selection, defaults=None):
