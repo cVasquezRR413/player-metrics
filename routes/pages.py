@@ -450,3 +450,42 @@ def search():
         p_min_fgp=p_min_fgp, p_max_fgp=p_max_fgp,
         p_min_3pp=p_min_3pp, p_max_3pp=p_max_3pp
     )
+
+@pages.route("/analysis")
+def analysis():
+    conn = get_connection()
+
+    teams_df = pd.read_sql_query("""
+        SELECT DISTINCT team_name FROM teams 
+        WHERE is_your_team = 1 ORDER BY team_name
+    """, conn)
+
+    opp_teams_df = pd.read_sql_query("""
+        SELECT DISTINCT team_name FROM teams 
+        WHERE is_your_team = 0 ORDER BY team_name
+    """, conn)
+
+    your_players_df = pd.read_sql_query("""
+        SELECT DISTINCT ps.player_name, t.team_name
+        FROM player_stats ps
+        JOIN teams t ON ps.team_id = t.team_id
+        WHERE t.is_your_team = 1
+        ORDER BY ps.player_name
+    """, conn)
+
+    opp_players_df = pd.read_sql_query("""
+        SELECT DISTINCT ps.player_name, t.team_name
+        FROM player_stats ps
+        JOIN teams t ON ps.team_id = t.team_id
+        WHERE t.is_your_team = 0
+        ORDER BY ps.player_name
+    """, conn)
+
+    conn.close()
+
+    return render_template("analysis.html",
+        teams=teams_df['team_name'].tolist(),
+        opp_teams=opp_teams_df['team_name'].tolist(),
+        your_players=your_players_df.to_dict('records'),
+        opp_players=opp_players_df.to_dict('records')
+    )
