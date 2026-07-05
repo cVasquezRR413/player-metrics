@@ -15,6 +15,22 @@ def safe_pct(numerator, denominator, decimals=3):
     result = result.where(denominator != 0)
     return result.round(decimals)
 
+# Add standard shooting percentages to a dataframe.
+def add_shooting_pcts(df):
+    df['fg_pct'] = safe_pct(df['fg_made'], df['fg_attempted'])
+    df['three_pct'] = safe_pct(df['three_made'], df['three_attempted'])
+    df['ft_pct'] = safe_pct(df['ft_made'], df['ft_attempted'])
+
+    return df
+
+# Add shooting percentages to team search totals.
+def add_team_search_pcts(df):
+    df['three_pct'] = safe_pct(df['total_3pm'], df['total_3pa'])
+    df['fg_pct'] = safe_pct(df['total_fgm'], df['total_fga'])
+    df['ft_pct'] = safe_pct(df['total_ftm'], df['total_fta'])
+
+    return df
+
 # Convert pandas NaN values to None so templates receive clean records.
 def clean_records(df):
     return df.astype(object).where(pd.notnull(df), None).to_dict('records')
@@ -119,9 +135,7 @@ def box_score():
 
     # Add shooting percentages for box score display.
     if not stats.empty:
-        stats['fg_pct'] = (stats['fg_made'] / stats['fg_attempted']).round(3)
-        stats['three_pct'] = (stats['three_made'] / stats['three_attempted']).round(3)
-        stats['ft_pct'] = (stats['ft_made'] / stats['ft_attempted']).round(3)
+        stats = add_shooting_pcts(stats)
 
     your_stats = stats[stats['is_your_team'] == 1].to_dict('records') if not stats.empty else []
     opp_stats = stats[stats['is_your_team'] == 0].to_dict('records') if not stats.empty else []
@@ -156,9 +170,7 @@ def trends():
 
     # Collapse player rows into one team total per game.
     game_totals = stats.groupby(['game_id', 'win_loss']).sum(numeric_only=True).reset_index()
-    game_totals['fg_pct'] = (game_totals['fg_made'] / game_totals['fg_attempted']).round(3)
-    game_totals['three_pct'] = (game_totals['three_made'] / game_totals['three_attempted']).round(3)
-    game_totals['ft_pct'] = (game_totals['ft_made'] / game_totals['ft_attempted']).round(3)
+    game_totals = add_shooting_pcts(game_totals)
 
     trends_data = game_totals.groupby('win_loss').mean(numeric_only=True).round(2).reset_index()
 
@@ -195,9 +207,7 @@ def players():
     # Average each player's stats within each team roster.
     averages = stats.groupby(['team_name', 'player_name']).mean(numeric_only=True).reset_index()
 
-    averages['fg_pct'] = safe_pct(averages['fg_made'], averages['fg_attempted'])
-    averages['three_pct'] = safe_pct(averages['three_made'], averages['three_attempted'])
-    averages['ft_pct'] = safe_pct(averages['ft_made'], averages['ft_attempted'])
+    averages = add_shooting_pcts(averages)
     
     # Calculate efficiency metrics from the averaged shooting data.
     averages['efg_pct'] = safe_pct(
@@ -367,9 +377,7 @@ def search():
             GROUP BY g.game_id
         """, conn)
 
-        game_totals['three_pct'] = (game_totals['total_3pm'] / game_totals['total_3pa']).round(3)
-        game_totals['fg_pct'] = (game_totals['total_fgm'] / game_totals['total_fga']).round(3)
-        game_totals['ft_pct'] = (game_totals['total_ftm'] / game_totals['total_fta']).round(3)
+        game_totals = add_team_search_pcts(game_totals)
 
         df = game_totals.copy()
 
@@ -440,8 +448,8 @@ def search():
             WHERE t.is_your_team = 1
         """, conn)
 
-        player_stats['fg_pct'] = (player_stats['fg_made'] / player_stats['fg_attempted']).round(3)
-        player_stats['three_pct'] = (player_stats['three_made'] / player_stats['three_attempted']).round(3)
+        player_stats['fg_pct'] = safe_pct(player_stats['fg_made'], player_stats['fg_attempted'])
+        player_stats['three_pct'] = safe_pct(player_stats['three_made'], player_stats['three_attempted'])
 
         dp = player_stats.copy()
 
