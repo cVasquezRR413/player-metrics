@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, redirect
 import pandas as pd
 from database import get_connection
 
@@ -489,3 +489,7 @@ def analysis():
         your_players=your_players_df.to_dict('records'),
         opp_players=opp_players_df.to_dict('records')
     )
+
+@pages.route("/matchups")
+def matchups():
+    return redirect('/analysis')

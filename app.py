@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, request
 import pandas as pd
 from database import get_connection
 from routes.pages import pages
@@ -81,12 +81,6 @@ def calc_stat_avgs(df):
     avgs = df.mean(numeric_only=True).round(2)
 
     return avgs.astype(object).where(pd.notnull(avgs), None).to_dict()
-
-# ─── MERGED ANALYSIS + MATCHUPS ──────────────────────
-
-@app.route("/matchups")
-def matchups():
-    return redirect('/analysis')
 
 # ─── API: TEAM TREND CHART ───────────────────────────
 
