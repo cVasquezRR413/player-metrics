@@ -756,12 +756,10 @@ def h2h_graph_data():
         opp_team_selections = []
 
         for selection in selections:
-            parts = selection.split('||')
-            if len(parts) < 2:
-                continue
+            team_name, side = parse_selection(selection, defaults=['', ''])
 
-            team_name = parts[0]
-            side = parts[1]
+            if not team_name or not side:
+                continue
 
             if side == 'yours':
                 your_team_selections.append(team_name)
@@ -769,13 +767,12 @@ def h2h_graph_data():
                 opp_team_selections.append(team_name)
 
         for selection in selections:
-            parts = selection.split('||')
-            if len(parts) < 2:
+            team_name, side = parse_selection(selection, defaults=['', ''])
+
+            if not team_name or not side:
                 results[selection] = []
                 continue
 
-            team_name = parts[0]
-            side = parts[1]
             is_your_team = 1 if side == 'yours' else 0
 
             opposite_teams = opp_team_selections if side == 'yours' else your_team_selections
@@ -818,13 +815,10 @@ def h2h_graph_data():
         opp_player_selections = []
 
         for selection in selections:
-            parts = selection.split('||')
-            if len(parts) < 3:
-                continue
+            player_name, team_name, side = parse_selection(selection, defaults=['', '', ''])
 
-            player_name = parts[0]
-            team_name = parts[1]
-            side = parts[2]
+            if not player_name or not team_name or not side:
+                continue
 
             if side == 'yours':
                 your_player_selections.append((player_name, team_name))
@@ -832,14 +826,12 @@ def h2h_graph_data():
                 opp_player_selections.append((player_name, team_name))
 
         for selection in selections:
-            parts = selection.split('||')
-            if len(parts) < 3:
+            player_name, team_name, side = parse_selection(selection, defaults=['', '', ''])
+
+            if not player_name or not team_name or not side:
                 results[selection] = []
                 continue
 
-            player_name = parts[0]
-            team_name = parts[1]
-            side = parts[2]
             is_your_team = 1 if side == 'yours' else 0
 
             opposite_players = opp_player_selections if side == 'yours' else your_player_selections
