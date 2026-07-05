@@ -480,27 +480,6 @@ def search():
         p_min_3pp=p_min_3pp, p_max_3pp=p_max_3pp
     )
 
-@app.route("/test")
-def test():
-    return render_template("search.html",
-        teams=[],
-        results=[],
-        searched=False,
-        total=0,
-        team='all',
-        result='all',
-        date_from='',
-        date_to='',
-        min_pts='',
-        max_pts='',
-        min_3pp='',
-        max_3pp='',
-        min_ast='',
-        max_ast='',
-        min_to='',
-        max_to=''
-    )
-
 # ─── MERGED ANALYSIS + MATCHUPS ──────────────────────
 
 @app.route("/analysis")
