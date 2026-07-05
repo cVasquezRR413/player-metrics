@@ -106,3 +106,33 @@ def box_score():
         opp_stats=opp_stats,
         selected_game_id=game_id
     )
+
+@pages.route("/trends")
+def trends():
+    conn = get_connection()
+
+    stats = pd.read_sql_query("""
+        SELECT g.game_id, g.win_loss,
+               ps.points, ps.assists, ps.rebounds, ps.off_rebounds,
+               ps.steals, ps.blocks, ps.turnovers,
+               ps.fg_made, ps.fg_attempted,
+               ps.three_made, ps.three_attempted,
+               ps.ft_made, ps.ft_attempted,
+               ps.fouls, ps.points_responsible_for, ps.dunks
+        FROM player_stats ps
+        JOIN teams t ON ps.team_id = t.team_id
+        JOIN games g ON ps.game_id = g.game_id
+        WHERE t.is_your_team = 1
+    """, conn)
+
+    conn.close()
+
+    # Collapse player rows into one team total per game.
+    game_totals = stats.groupby(['game_id', 'win_loss']).sum(numeric_only=True).reset_index()
+    game_totals = add_shooting_pcts(game_totals)
+
+    trends_data = game_totals.groupby('win_loss').mean(numeric_only=True).round(2).reset_index()
+
+    return render_template("trends.html",
+        trends=trends_data.to_dict('records')
+    )
