@@ -45,6 +45,16 @@ def apply_limit(df, limit, sort_columns=None):
 
     return df.tail(int(limit))
 
+# Apply optional minimum and maximum filters to a numeric dataframe column.
+def apply_numeric_filter(df, column, min_value='', max_value=''):
+    if min_value:
+        df = df[df[column] >= float(min_value)]
+
+    if max_value:
+        df = df[df[column] <= float(max_value)]
+
+    return df
+
 # Calculate average stat records for matchup tables.
 def calc_stat_avgs(df):
     if df.empty:
@@ -389,42 +399,18 @@ def search():
             df = df[df['date'] >= date_from]
         if date_to:
             df = df[df['date'] <= date_to]
-        if min_pts:
-            df = df[df['total_pts'] >= float(min_pts)]
-        if max_pts:
-            df = df[df['total_pts'] <= float(max_pts)]
-        if min_3pp:
-            df = df[df['three_pct'] >= float(min_3pp)]
-        if max_3pp:
-            df = df[df['three_pct'] <= float(max_3pp)]
-        if min_fgp:
-            df = df[df['fg_pct'] >= float(min_fgp)]
-        if max_fgp:
-            df = df[df['fg_pct'] <= float(max_fgp)]
-        if min_ftp:
-            df = df[df['ft_pct'] >= float(min_ftp)]
-        if max_ftp:
-            df = df[df['ft_pct'] <= float(max_ftp)]
-        if min_ast:
-            df = df[df['total_ast'] >= float(min_ast)]
-        if max_ast:
-            df = df[df['total_ast'] <= float(max_ast)]
-        if min_reb:
-            df = df[df['total_reb'] >= float(min_reb)]
-        if max_reb:
-            df = df[df['total_reb'] <= float(max_reb)]
-        if min_stl:
-            df = df[df['total_stl'] >= float(min_stl)]
-        if max_stl:
-            df = df[df['total_stl'] <= float(max_stl)]
-        if min_blk:
-            df = df[df['total_blk'] >= float(min_blk)]
-        if max_blk:
-            df = df[df['total_blk'] <= float(max_blk)]
-        if min_to:
-            df = df[df['total_to'] >= float(min_to)]
-        if max_to:
-            df = df[df['total_to'] <= float(max_to)]
+        
+        df = apply_numeric_filter(df, 'total_pts', min_pts, max_pts)
+        
+        df = apply_numeric_filter(df, 'three_pct', min_3pp, max_3pp)
+        df = apply_numeric_filter(df, 'fg_pct', min_fgp, max_fgp)
+        df = apply_numeric_filter(df, 'ft_pct', min_ftp, max_ftp)
+
+        df = apply_numeric_filter(df, 'total_ast', min_ast, max_ast)
+        df = apply_numeric_filter(df, 'total_reb', min_reb, max_reb)
+        df = apply_numeric_filter(df, 'total_stl', min_stl, max_stl)
+        df = apply_numeric_filter(df, 'total_blk', min_blk, max_blk)
+        df = apply_numeric_filter(df, 'total_to', min_to, max_to)
 
         df = df.sort_values('date', ascending=False)
         team_results = df.to_dict('records')
@@ -455,26 +441,11 @@ def search():
 
         if player_name:
             dp = dp[dp['player_name'].str.lower() == player_name.lower()]
-        if p_min_pts:
-            dp = dp[dp['points'] >= float(p_min_pts)]
-        if p_max_pts:
-            dp = dp[dp['points'] <= float(p_max_pts)]
-        if p_min_ast:
-            dp = dp[dp['assists'] >= float(p_min_ast)]
-        if p_max_ast:
-            dp = dp[dp['assists'] <= float(p_max_ast)]
-        if p_min_reb:
-            dp = dp[dp['rebounds'] >= float(p_min_reb)]
-        if p_max_reb:
-            dp = dp[dp['rebounds'] <= float(p_max_reb)]
-        if p_min_fgp:
-            dp = dp[dp['fg_pct'] >= float(p_min_fgp)]
-        if p_max_fgp:
-            dp = dp[dp['fg_pct'] <= float(p_max_fgp)]
-        if p_min_3pp:
-            dp = dp[dp['three_pct'] >= float(p_min_3pp)]
-        if p_max_3pp:
-            dp = dp[dp['three_pct'] <= float(p_max_3pp)]
+        dp = apply_numeric_filter(dp, 'points', p_min_pts, p_max_pts)
+        dp = apply_numeric_filter(dp, 'assists', p_min_ast, p_max_ast)
+        dp = apply_numeric_filter(dp, 'rebounds', p_min_reb, p_max_reb)
+        dp = apply_numeric_filter(dp, 'fg_pct', p_min_fgp, p_max_fgp)
+        dp = apply_numeric_filter(dp, 'three_pct', p_min_3pp, p_max_3pp)
 
         dp = dp.sort_values('date', ascending=False)
         player_results = dp.to_dict('records')
