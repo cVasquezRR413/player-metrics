@@ -60,8 +60,11 @@ let playerMatchupPlayerSelection = null;
 
 // Chart datasets cycle through these colors when multiple teams or players are graphed.
 const lineColors = [
-    '#98002E', '#2196F3', '#4caf50', '#FF9800', '#9C27B0',
-    '#00BCD4', '#FF5722', '#8BC34A', '#FFC107', '#E91E63'
+    '#d6291b', // red
+    '#4273d7', // blue
+    '#ffe1a3', // yellow
+    '#55b543', // green
+    '#b83b9f'  // purple
 ];
 
 let graphCount = 0;
@@ -502,6 +505,7 @@ function buildGameAxis(data) {
 function buildChartDatasets(data, selectionKeys, selectionLabels, allGames) {
     return selectionKeys.map((key, i) => {
         const gameData = data[key] || [];
+        const lineColor = lineColors[i % lineColors.length];
 
         // Map each selection's data by game_id so missing games can render as gaps.
         const gameMap = {};
@@ -510,15 +514,21 @@ function buildChartDatasets(data, selectionKeys, selectionLabels, allGames) {
         return {
             label: selectionLabels[i],
             data: allGames.map(game => gameMap[game.game_id] ? gameMap[game.game_id].value : null),
-            borderColor: lineColors[i % lineColors.length],
-            backgroundColor: lineColors[i % lineColors.length] + '20',
+            borderColor: lineColor,
+            backgroundColor: lineColor + '20',
             borderWidth: 2,
             pointRadius: 4,
             pointBackgroundColor: allGames.map(game => {
                 const g = gameMap[game.game_id];
                 if (!g) return '#444';
-                return g.win_loss === 'W' ? '#4caf50' : '#98002E';
+                return g.selection_win_loss === 'W' ? lineColor : '#0a0a0a';
             }),
+            pointBorderColor: allGames.map(game => {
+                const g = gameMap[game.game_id];
+                if (!g) return '#444';
+                return lineColor;
+            }),
+            pointBorderWidth: 2,
             tension: 0.3,
             fill: false,
             spanGaps: false
@@ -563,7 +573,7 @@ function renderH2HGraph(data, selectionKeys, selectionLabels, statLabel, limitLa
                             const game = gameData.find(g => g.game_id === allGames[ctx.dataIndex].game_id);
                             if (game) {
                                 const ha = game.home_away === 'H' ? 'Home' : 'Away';
-                                return `${game.win_loss === 'W' ? 'WIN' : 'LOSS'} vs ${game.opp_team} (${ha})`;
+                                return `${game.selection_win_loss === 'W' ? 'WIN' : 'LOSS'} vs ${game.opp_team} (${ha})`;
                             }
                             return '';
                         }
@@ -698,7 +708,7 @@ function renderGraph(data, selectionKeys, selectionLabels, statLabel, limitLabel
                             const game = gameData.find(g => g.game_id === allGames[ctx.dataIndex].game_id);
                             if (game) {
                                 const ha = game.home_away === 'H' ? 'Home' : 'Away';
-                                return `${game.win_loss === 'W' ? 'WIN' : 'LOSS'} vs ${game.opp_team} (${ha})`;
+                                return `${game.selection_win_loss === 'W' ? 'WIN' : 'LOSS'} vs ${game.opp_team} (${ha})`;
                             }
                             return '';
                         }

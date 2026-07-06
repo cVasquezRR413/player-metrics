@@ -52,6 +52,23 @@ def calc_stat_avgs(df):
 
     return avgs.astype(object).where(pd.notnull(avgs), None).to_dict()
 
+# Convert game result from user-side perspective to the selected team's perspective.
+def add_selection_win_loss(df, side):
+    if df.empty:
+        return df
+
+    df = df.copy()
+
+    if side == 'opp':
+        df['selection_win_loss'] = df['win_loss'].map({
+            'W': 'L',
+            'L': 'W'
+        })
+    else:
+        df['selection_win_loss'] = df['win_loss']
+
+    return df
+
 # ─── API: TEAM TREND CHART ───────────────────────────
 
 @app.route("/api/chart_data")
@@ -135,6 +152,7 @@ def chart_data():
             df = pd.read_sql_query(query, conn, params=(player_name, team_name))
 
         df = apply_limit(df, limit)
+        df = add_selection_win_loss(df, side)
 
         results[selection] = df.to_dict('records')
 
@@ -244,6 +262,7 @@ def player_graph_data():
         )
 
         df = apply_limit(df, limit)
+        df = add_selection_win_loss(df, side)
 
         results[selection] = df.to_dict('records')
 
@@ -323,6 +342,7 @@ def h2h_graph_data():
             )
 
             df = apply_limit(df, limit)
+            df = add_selection_win_loss(df, side)
 
             results[selection] = df.to_dict('records')
 
@@ -401,6 +421,7 @@ def h2h_graph_data():
             )
 
             df = apply_limit(df, limit)
+            df = add_selection_win_loss(df, side)
 
             results[selection] = df.to_dict('records')
 
