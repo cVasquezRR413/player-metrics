@@ -61,11 +61,11 @@
                 <td>{{ p.assists }}</td><td>{{ p.rebounds }}</td><td>{{ p.off_rebounds }}</td>
                 <td>{{ p.steals }}</td><td>{{ p.blocks }}</td><td>{{ p.turnovers }}</td>
                 <td>{{ p.fg_made }}</td><td>{{ p.fg_attempted }}</td>
-                <td>{{ "%.3f"|format(p.fg_pct) }}</td>
+                <td>{{ "%.3f"|format(p.fg_pct) if p.fg_pct == p.fg_pct else "—" }}</td>
                 <td>{{ p.three_made }}</td><td>{{ p.three_attempted }}</td>
-                <td>{{ "%.3f"|format(p.three_pct) }}</td>
+                <td>{{ "%.3f"|format(p.three_pct) if p.three_pct == p.three_pct else "—" }}</td>
                 <td>{{ p.ft_made }}</td><td>{{ p.ft_attempted }}</td>
-                <td>{{ "%.3f"|format(p.ft_pct) }}</td>
+                <td>{{ "%.3f"|format(p.ft_pct) if p.ft_pct == p.ft_pct else "—" }}</td>
                 <td>{{ p.fouls }}</td>
                 <td style="color: {{ '#4caf50' if p.plus_minus > 0 else '#98002E' if p.plus_minus < 0 else '#888' }};">
                     {{ '+' if p.plus_minus > 0 else '' }}{{ p.plus_minus }}
@@ -106,11 +106,11 @@
                 <td>{{ p.assists }}</td><td>{{ p.rebounds }}</td><td>{{ p.off_rebounds }}</td>
                 <td>{{ p.steals }}</td><td>{{ p.blocks }}</td><td>{{ p.turnovers }}</td>
                 <td>{{ p.fg_made }}</td><td>{{ p.fg_attempted }}</td>
-                <td>{{ "%.3f"|format(p.fg_pct) }}</td>
+                <td>{{ "%.3f"|format(p.fg_pct) if p.fg_pct == p.fg_pct else "—" }}</td>
                 <td>{{ p.three_made }}</td><td>{{ p.three_attempted }}</td>
-                <td>{{ "%.3f"|format(p.three_pct) }}</td>
+                <td>{{ "%.3f"|format(p.three_pct) if p.three_pct == p.three_pct else "—" }}</td>
                 <td>{{ p.ft_made }}</td><td>{{ p.ft_attempted }}</td>
-                <td>{{ "%.3f"|format(p.ft_pct) }}</td>
+                <td>{{ "%.3f"|format(p.ft_pct) if p.ft_pct == p.ft_pct else "—" }}</td>
                 <td>{{ p.fouls }}</td>
                 <td style="color: {{ '#4caf50' if p.plus_minus > 0 else '#98002E' if p.plus_minus < 0 else '#888' }};">
                     {{ '+' if p.plus_minus > 0 else '' }}{{ p.plus_minus }}
