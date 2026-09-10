@@ -52,6 +52,25 @@ PlayerMetrics is currently in active development. The main box score, search, ma
 ### Game Search Results
 ![Game search results](screenshots/game-search-results.png)
 
+## Running Locally
+
+1. Clone the repository.
+2. Install dependencies:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Run the application:
+
+   ```bash
+   python app.py
+   ```
+
+4. Open the local address shown in the terminal in your browser.
+
+   Example: `http://127.0.0.1:5000`
+
 ## Future Improvements
 
 - Add a more polished data entry workflow for new games and box scores
